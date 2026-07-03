@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[codz]
+.venv/
+.venv-*/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local, machine-specific overrides (never commit)
+*.local.json
+.env
+.envrc
