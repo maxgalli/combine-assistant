@@ -68,10 +68,18 @@ Any launcher works as long as the spawned server process has `combine`
 on its PATH. See [`combine-run-mcp`](https://github.com/maxgalli/combine-run-mcp)
 for the server itself.
 
-Once registered, the skill routes execution requests to
-`combine-run-local`. When a shared remote execution server is deployed,
-it will be added to the shared config as `combine-run-remote`, and the
-skill prefers local when both are present.
+A shared **remote** execution server is deployed on CERN PaaS and
+registered in this repo's config as `combine-run-remote` (see
+[`.mcp.json`](.mcp.json)). It is reachable from the **CERN network**
+only. So:
+
+- On the CERN network with no local setup → `combine-run-remote` works
+  out of the box.
+- With `combine-run-local` also registered → the skill **prefers
+  local** (no upload limits, longer timeouts).
+- Off the CERN network with no local setup → no execution server is
+  reachable; the assistant answers from the corpus and won't fabricate
+  results.
 
 ## How it fits together
 

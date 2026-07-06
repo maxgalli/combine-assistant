@@ -6,6 +6,11 @@
       "type": "remote",
       "url": "https://combine-mcp-git-combine-mcp.app.cern.ch/mcp",
       "enabled": true
+    },
+    "combine-run-remote": {
+      "type": "remote",
+      "url": "https://combine-run-mcp-git-combine-mcp.app.cern.ch/mcp",
+      "enabled": true
     }
   },
 

@@ -3,6 +3,10 @@
     "combine": {
       "type": "http",
       "url": "https://combine-mcp-git-combine-mcp.app.cern.ch/mcp"
+    },
+    "combine-run-remote": {
+      "type": "http",
+      "url": "https://combine-run-mcp-git-combine-mcp.app.cern.ch/mcp"
     }
   }
 }
