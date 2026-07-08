@@ -101,10 +101,10 @@ falls back to the remote one.
 ## Deploying to CVMFS
 
 `config/` is designed to ship read-only on CVMFS. It deploys to the CMS
-Common Analysis Tools area, so users just:
+CAT software area, so users just:
 
 ```bash
-source /cvmfs/cms.cern.ch/cat/combine-assistant/latest/bin/setup.sh
+source /cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant/latest/bin/setup.sh
 export LITELLM_API_KEY=<key>
 opencode
 ```
@@ -119,7 +119,8 @@ Publishing is two phases:
 source dist/cvmfs-stage/latest/bin/setup.sh
 
 # Phase 2 — publish (on a machine with cvmfs_server + write access).
-# Defaults to /cvmfs/cms.cern.ch/cat/combine-assistant on repo cms.cern.ch:
+# Defaults to /cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant
+# on repo cms-griddata.cern.ch:
 ./script/cvmfs-deploy.sh --publish
 ```
 

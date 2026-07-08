@@ -33,9 +33,10 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE_DIR="${REPO_ROOT}/dist/cvmfs-stage"
 PUBLISH=false
 
-# Default deployment target: the CMS Common Analysis Tools area.
-CVMFS_BASE="/cvmfs/cms.cern.ch/cat/combine-assistant"
-CVMFS_REPO="cms.cern.ch"
+# Default deployment target: the CMS CAT software area on CVMFS
+# (same repo the pixi tool is published to).
+CVMFS_BASE="/cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant"
+CVMFS_REPO="cms-griddata.cern.ch"
 
 usage() {
   cat <<EOF
