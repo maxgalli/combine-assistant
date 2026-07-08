@@ -10,6 +10,9 @@ __pycache__/
 .idea/
 .vscode/
 
+# CVMFS staging output
+dist/
+
 # Local, machine-specific overrides (never commit)
 *.local.json
 .env

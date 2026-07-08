@@ -1,8 +1,8 @@
 # combine-assistant
 
 An AI assistant for **CMS Combine** (HiggsAnalysis-CombinedLimit). It
-assembles two MCP servers and a skill into one coherent agent that can
-answer Combine questions with citations and run Combine commands to
+assembles two MCP servers and a skill into one coherent agent that
+answers Combine questions with citations and runs Combine commands to
 reproduce, diagnose, and confirm results.
 
 This repo is the *assembly layer*. The servers live in their own repos:
@@ -12,84 +12,102 @@ This repo is the *assembly layer*. The servers live in their own repos:
 | Retrieval MCP | [`combine-mcp`](https://github.com/maxgalli/combine-mcp) | Read-only search/fetch over docs, paper, code, forum. |
 | Execution MCP | [`combine-run-mcp`](https://github.com/maxgalli/combine-run-mcp) | Runs a Combine command in an isolated workspace. |
 
-## What's in here
+## Layout
+
+`config/` is the single source of truth (the tree that ships to CVMFS
+and that opencode reads). The Claude Code discovery paths are symlinks
+into it, so there is no duplicated content.
 
 ```
 combine-assistant/
-├── AGENTS.md                       top-level persona / system prompt
-├── .mcp.json                       Claude Code: MCP registration
-├── opencode.json                   opencode: MCP registration + permissions
-└── .claude/skills/combine/
-    └── SKILL.md                    routing + execution guidance (both clients)
+├── VERSION
+├── bin/setup.sh              opencode: source to point at config/
+├── script/cvmfs-deploy.sh    stage + publish config/ to CVMFS
+├── .mcp.json                 Claude Code: MCP registration
+├── AGENTS.md            -> config/AGENTS.md      (symlink)
+├── .claude/skills      -> ../config/skills       (symlink)
+└── config/
+    ├── opencode.json         providers, model, MCP servers, permissions
+    ├── AGENTS.md             persona / system prompt
+    └── skills/combine/
+        └── SKILL.md          routing + execution guidance
 ```
 
-## Requirements
-
-- An MCP-aware client: [Claude Code](https://claude.com/claude-code) or
-  [opencode](https://opencode.ai).
-- Network access to the deployed `combine` retrieval MCP (a CERN PaaS
-  URL; see [`.mcp.json`](.mcp.json)).
-- *(optional, for execution)* A local Combine environment, if you want
-  to run commands on your own machine — see
-  [Local execution](#local-execution-optional).
-
-## Usage
+## Using it
 
 ### Claude Code
 
-Open this repo in Claude Code. The `combine` retrieval MCP is
-auto-registered from [`.mcp.json`](.mcp.json), and the skill is
-auto-discovered from `.claude/skills/`. Confirm with `/mcp` (you should
-see `combine`) and start asking Combine questions.
+Open this repo in Claude Code. The `combine` and `combine-run-remote`
+MCP servers are auto-registered from [`.mcp.json`](.mcp.json), and the
+skill is discovered via the `.claude/skills` symlink. Claude Code uses
+its own model — nothing to configure here.
 
 ### opencode
 
-From this repo, opencode reads [`opencode.json`](opencode.json) (MCP
-registration + a starter bash-permission allowlist) and discovers the
-skill from `.claude/skills/`. Add your provider/model block to
-`opencode.json` as you prefer.
+opencode needs to be installed (`curl -fsSL https://opencode.ai/install | bash`),
+then:
+
+```bash
+source ./bin/setup.sh          # sets OPENCODE_CONFIG_DIR -> config/
+export LITELLM_API_KEY=<key>   # your own CERN LiteLLM gateway key
+opencode
+```
+
+`setup.sh` layers this repo's `config/opencode.json` onto your own
+opencode config: it **adds** the Combine MCP servers, the skill, and
+the persona, and sets a default model. It does **not** replace your
+global opencode settings (opencode merges config sources).
+
+### Model / credentials
+
+You bring your own key — nothing is shared in this repo.
+
+- **Default: CERN LiteLLM gateway.** Mint your own key from the CERN
+  LLM gateway self-service and `export LITELLM_API_KEY=…`. Data stays
+  in CERN's governed gateway. Default model: `litellm/gpt-4.1`.
+- **Alternative: Anthropic.** `export ANTHROPIC_API_KEY=…` and switch
+  the model to `anthropic/claude-sonnet-5` (or `claude-opus-4-8`).
+
+Override the model per-session in opencode if you prefer another.
 
 ## Local execution (optional)
 
-The `combine` retrieval MCP works for everyone with no setup. The
-**execution** MCP is different: running Combine needs a real Combine
-environment, which is inherently machine-specific, so it is **not**
-baked into this repo's shared config. Register it yourself, once:
+The `combine` retrieval MCP and the `combine-run-remote` execution MCP
+are deployed on CERN PaaS (reachable from the CERN network). If you
+want to run Combine on **your own machine** instead, register the
+execution server locally — it's machine-specific, so it is not baked
+into this shared config:
 
 ```bash
-# Point the wrapper at YOUR Combine environment and the installed
-# combine-run-mcp. Example using a pixi-managed Combine build:
 claude mcp add combine-run-local --scope user -- \
   <path-to>/pixi run --manifest-path <combine>/pixi.toml \
   <path-to>/combine-run-mcp serve
 ```
 
-Any launcher works as long as the spawned server process has `combine`
-on its PATH. See [`combine-run-mcp`](https://github.com/maxgalli/combine-run-mcp)
-for the server itself.
+The skill prefers a local execution server when one is registered and
+falls back to the remote one.
 
-A shared **remote** execution server is deployed on CERN PaaS and
-registered in this repo's config as `combine-run-remote` (see
-[`.mcp.json`](.mcp.json)). It is reachable from the **CERN network**
-only. So:
+## Deploying to CVMFS
 
-- On the CERN network with no local setup → `combine-run-remote` works
-  out of the box.
-- With `combine-run-local` also registered → the skill **prefers
-  local** (no upload limits, longer timeouts).
-- Off the CERN network with no local setup → no execution server is
-  reachable; the assistant answers from the corpus and won't fabricate
-  results.
+`config/` is designed to ship read-only on CVMFS so users just
+`source /cvmfs/<repo>/<path>/latest/bin/setup.sh`.
 
-## How it fits together
+```bash
+# Phase 1 — stage locally (anywhere). Produces dist/cvmfs-stage/<VERSION>/.
+./script/cvmfs-deploy.sh --stage-only
 
-- **Questions** ("how / why / what does this do / has anyone hit
-  this") → the `combine` retrieval MCP, answered with citations.
-- **Running Combine** (reproduce a failing command, confirm a fix) →
-  the `combine-run` MCP, when registered.
-- The [skill](.claude/skills/combine/SKILL.md) contains the routing
-  logic: which retrieval source to use, when to run vs. explain, and
-  local-vs-remote execution preference.
+# (optional) test the staged tree before publishing:
+source dist/cvmfs-stage/latest/bin/setup.sh
+
+# Phase 2 — publish (on a CVMFS publisher node with write access):
+./script/cvmfs-deploy.sh \
+  --cvmfs-base /cvmfs/<repo>/<path> \
+  --cvmfs-repo <repo> --publish
+```
+
+Publishing requires `cvmfs_server` and write access to the target
+CVMFS repository. `.claude/` and `.mcp.json` (Claude-Code-only) are
+excluded from the published tree.
 
 ## License
 
