@@ -13,6 +13,15 @@ __pycache__/
 # CVMFS staging output
 dist/
 
+# opencode installs a plugin runtime into OPENCODE_CONFIG_DIR (config/)
+# when run from a writable checkout — don't commit those artifacts.
+config/node_modules/
+config/package.json
+config/package-lock.json
+config/bun.lock
+config/bun.lockb
+config/.opencode/
+
 # Local, machine-specific overrides (never commit)
 *.local.json
 .env

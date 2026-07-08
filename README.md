@@ -44,19 +44,30 @@ its own model — nothing to configure here.
 
 ### opencode
 
-opencode needs to be installed (`curl -fsSL https://opencode.ai/install | bash`),
-then:
-
 ```bash
-source ./bin/setup.sh          # sets OPENCODE_CONFIG_DIR -> config/
+source ./bin/setup.sh          # wires opencode at this repo's config/
 export LITELLM_API_KEY=<key>   # your own CERN LiteLLM gateway key
 opencode
 ```
 
-`setup.sh` layers this repo's `config/opencode.json` onto your own
-opencode config: it **adds** the Combine MCP servers, the skill, and
-the persona, and sets a default model. It does **not** replace your
-global opencode settings (opencode merges config sources).
+`setup.sh` handles both the binary and the config:
+
+- **Binary.** It uses an `opencode` already on your PATH. If there
+  isn't one, it borrows the opencode binary published on CVMFS
+  (default: lumi's, `/cvmfs/sw.escape.eu/lumi/latest/bin`; override with
+  `COMBINE_ASSISTANT_OPENCODE_BIN`). So on lxplus/SWAN you need no
+  install; elsewhere, install opencode
+  (`curl -fsSL https://opencode.ai/install | bash`) or point the
+  variable at one.
+- **Config.** It sets `OPENCODE_CONFIG_DIR` to this repo's `config/`,
+  which **adds** the Combine MCP servers, the skill, the persona, and a
+  default model on top of your own global opencode config (opencode
+  merges config sources — it doesn't replace them). When `config/` is
+  read-only (CVMFS) it is copied to a per-user writable dir first,
+  because opencode installs a plugin runtime into that directory.
+
+It also keeps the opencode DB on local fs (EOS can't do SQLite WAL) and
+disables opencode autoupdate (versions come from CVMFS).
 
 ### Model / credentials
 
