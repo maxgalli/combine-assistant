@@ -3,16 +3,21 @@
 # Stage (and optionally publish) the combine-assistant config to CVMFS.
 #
 # Usage:
-#   ./script/cvmfs-deploy.sh                                          # stage only (default)
-#   ./script/cvmfs-deploy.sh --stage-only                            # stage only, explicit
-#   ./script/cvmfs-deploy.sh --cvmfs-base /cvmfs/<repo>/<path> \
-#                            --cvmfs-repo <repo>                     \
-#                            --publish                               # publish
+#   ./script/cvmfs-deploy.sh                 # stage only (default)
+#   ./script/cvmfs-deploy.sh --stage-only    # stage only, explicit
+#   ./script/cvmfs-deploy.sh --publish       # stage + publish to the default target
+#   ./script/cvmfs-deploy.sh --publish \
+#       --cvmfs-base /cvmfs/<repo>/<path> \
+#       --cvmfs-repo <repo>                  # publish to a custom target
 #
-# No CVMFS path is baked in. Pass --cvmfs-base to name the target
-# directory and --cvmfs-repo to name the CVMFS repository on which to
-# run the transaction. Publishing requires a CVMFS publisher node with
-# cvmfs_server and write access to that repository.
+# Publishing requires a machine with cvmfs_server and write access to the
+# target repository. The publish uses cvmfs_rsync when available (the
+# CVMFS-aware rsync) and is add-only (no --delete) so older published
+# versions that users may have pinned are never removed.
+#
+# Gateway repos: if the target uses the CVMFS publisher-gateway model
+# (leases on a subpath), pass the leased subpath as --cvmfs-repo, e.g.
+#   --cvmfs-repo cms.cern.ch/cat/combine-assistant
 #
 # Layout produced under dist/cvmfs-stage/ (and mirrored on CVMFS):
 #   <VERSION>/
@@ -27,19 +32,20 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE_DIR="${REPO_ROOT}/dist/cvmfs-stage"
 PUBLISH=false
-CVMFS_BASE=""
-CVMFS_REPO=""
+
+# Default deployment target: the CMS Common Analysis Tools area.
+CVMFS_BASE="/cvmfs/cms.cern.ch/cat/combine-assistant"
+CVMFS_REPO="cms.cern.ch"
 
 usage() {
   cat <<EOF
 Usage: $0 [options]
 
-  --cvmfs-base PATH   Target directory on CVMFS, e.g.
-                        /cvmfs/<repo>/combine-assistant
-  --cvmfs-repo NAME   CVMFS repository name for cvmfs_server, e.g.
-                        <repo>
-  --publish           Run cvmfs_server transaction + rsync + publish
-                      (requires --cvmfs-base and --cvmfs-repo)
+  --cvmfs-base PATH   Target directory on CVMFS
+                        (default: ${CVMFS_BASE})
+  --cvmfs-repo NAME   CVMFS repository / lease for cvmfs_server
+                        (default: ${CVMFS_REPO})
+  --publish           Run cvmfs_server transaction + cvmfs_rsync + publish
   --stage-only        (default) Only stage locally under dist/cvmfs-stage
   -h, --help          Show this help
 EOF
@@ -68,11 +74,9 @@ echo "==> Staging combine-assistant v${VERSION}"
 rm -rf "${DEST}"
 mkdir -p "${DEST}"
 
-# Copy the release payload only. Exclude dev-only and Claude-Code-only
-# files (the CVMFS/opencode path uses config/ via OPENCODE_CONFIG_DIR).
-# Root-anchored excludes (leading /) so we only drop the top-level
-# Claude-Code-only files, NOT the real config/AGENTS.md the persona
-# lives in. .DS_Store stays unanchored (drop at any depth).
+# Copy the release payload only. Root-anchored excludes (leading /) so we
+# only drop the top-level dev / Claude-Code-only files, NOT the real
+# config/AGENTS.md. .DS_Store stays unanchored (drop at any depth).
 rsync -a \
   --exclude '/.git' \
   --exclude '/dist' \
@@ -100,9 +104,10 @@ if [ "$PUBLISH" != true ]; then
 
 ==> Dry run complete. Inspect ${STAGE_DIR}/${VERSION}/, or test it:
       source ${STAGE_DIR}/latest/bin/setup.sh
-    To publish (on a CVMFS publisher node):
-      $0 --cvmfs-base /cvmfs/<repo>/<path> \\
-          --cvmfs-repo <repo> --publish
+    To publish (on a machine with cvmfs_server + write access):
+      $0 --publish
+    (defaults to ${CVMFS_BASE} on repo ${CVMFS_REPO}; override with
+     --cvmfs-base / --cvmfs-repo)
 EOF
   exit 0
 fi
@@ -111,7 +116,7 @@ fi
 # Publish path
 # ---------------------------------------------------------------------------
 if [ -z "$CVMFS_BASE" ] || [ -z "$CVMFS_REPO" ]; then
-  echo "ERROR: --publish requires both --cvmfs-base and --cvmfs-repo" >&2
+  echo "ERROR: --publish needs a non-empty --cvmfs-base and --cvmfs-repo" >&2
   exit 1
 fi
 
@@ -120,12 +125,17 @@ if ! command -v cvmfs_server >/dev/null 2>&1; then
   exit 1
 fi
 
+# Prefer the CVMFS-aware rsync; fall back to plain rsync. Add-only (no
+# --delete) so older published versions are preserved.
+RSYNC_BIN="$(command -v cvmfs_rsync || command -v rsync)"
+
 echo "==> Publishing to ${CVMFS_BASE} on CVMFS repo ${CVMFS_REPO}"
+echo "    using ${RSYNC_BIN}"
 
 cvmfs_server transaction "${CVMFS_REPO}"
 
 mkdir -p "${CVMFS_BASE}"
-rsync -a --delete "${STAGE_DIR}/" "${CVMFS_BASE}/"
+"${RSYNC_BIN}" -av "${STAGE_DIR}/" "${CVMFS_BASE}/"
 
 cvmfs_server publish "${CVMFS_REPO}"
 

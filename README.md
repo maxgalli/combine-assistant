@@ -100,8 +100,16 @@ falls back to the remote one.
 
 ## Deploying to CVMFS
 
-`config/` is designed to ship read-only on CVMFS so users just
-`source /cvmfs/<repo>/<path>/latest/bin/setup.sh`.
+`config/` is designed to ship read-only on CVMFS. It deploys to the CMS
+Common Analysis Tools area, so users just:
+
+```bash
+source /cvmfs/cms.cern.ch/cat/combine-assistant/latest/bin/setup.sh
+export LITELLM_API_KEY=<key>
+opencode
+```
+
+Publishing is two phases:
 
 ```bash
 # Phase 1 — stage locally (anywhere). Produces dist/cvmfs-stage/<VERSION>/.
@@ -110,15 +118,22 @@ falls back to the remote one.
 # (optional) test the staged tree before publishing:
 source dist/cvmfs-stage/latest/bin/setup.sh
 
-# Phase 2 — publish (on a CVMFS publisher node with write access):
-./script/cvmfs-deploy.sh \
-  --cvmfs-base /cvmfs/<repo>/<path> \
-  --cvmfs-repo <repo> --publish
+# Phase 2 — publish (on a machine with cvmfs_server + write access).
+# Defaults to /cvmfs/cms.cern.ch/cat/combine-assistant on repo cms.cern.ch:
+./script/cvmfs-deploy.sh --publish
 ```
 
-Publishing requires `cvmfs_server` and write access to the target
-CVMFS repository. `.claude/` and `.mcp.json` (Claude-Code-only) are
-excluded from the published tree.
+The publish uses `cvmfs_rsync` when available and is **add-only** (no
+`--delete`), so previously published versions that users may have
+pinned are never removed — a new release just adds its `<VERSION>/`
+tree and repoints `latest`. `.claude/`, `.mcp.json`, and the root
+`AGENTS.md` symlink (Claude-Code-only) are excluded from the published
+tree.
+
+Note that the opencode **binary** is not shipped here — `setup.sh`
+borrows lumi's published binary from `/cvmfs/sw.escape.eu/lumi/...`, so
+users need both `cms.cern.ch` and `sw.escape.eu` mounted (both are on
+lxplus/SWAN).
 
 ## License
 
