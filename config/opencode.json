@@ -84,6 +84,22 @@
           }
         }
       }
+    },
+
+    "cern-vm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Combine-bot VM (self-hosted Ollama, no key)",
+      "options": {
+        "baseURL": "http://Combine-bot.cern.ch:11434/v1",
+        "apiKey": "ollama"
+      },
+      "models": {
+        "qwen2.5-coder:7b": {
+          "name": "Qwen2.5 Coder 7B (self-hosted)",
+          "tool_call": true,
+          "limit": { "context": 16384, "output": 8192 }
+        }
+      }
     }
   },
 

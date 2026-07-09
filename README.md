@@ -71,15 +71,26 @@ disables opencode autoupdate (versions come from CVMFS).
 
 ### Model / credentials
 
-You bring your own key — nothing is shared in this repo.
+No credential is shared in this repo — you pick a provider and (for the
+hosted ones) bring your own key. Switch model per-session with
+`opencode --model <provider>/<model>`.
 
-- **Default: CERN LiteLLM gateway.** Mint your own key from the CERN
-  LLM gateway self-service and `export LITELLM_API_KEY=…`. Data stays
-  in CERN's governed gateway. Default model: `litellm/gpt-4.1`.
-- **Alternative: Anthropic.** `export ANTHROPIC_API_KEY=…` and switch
-  the model to `anthropic/claude-sonnet-5` (or `claude-opus-4-8`).
+| Provider | Model(s) | Key | Notes |
+|---|---|---|---|
+| `litellm` **(default)** | `litellm/gpt-4.1`, `litellm/mistral-small-latest` | `LITELLM_API_KEY` | CERN LiteLLM gateway. Mint your own key from the CERN LLM gateway self-service; data stays in CERN's governed gateway. |
+| `anthropic` | `anthropic/claude-sonnet-5`, `anthropic/claude-opus-4-8` | `ANTHROPIC_API_KEY` | Public Anthropic API, your own key. |
+| `nrp` | `nrp/qwen3`, `nrp/qwen3-small`, `nrp/kimi` | `NRP_API_KEY` | Free-for-researchers GPU gateway (National Research Platform / Nautilus). Get a token at the NRP LLM token page. Good open-model option without a CERN key. |
+| `cern-vm` | `cern-vm/qwen2.5-coder:7b` | none | **Self-hosted** Ollama on `Combine-bot.cern.ch`. No key at all — but see the warning below. |
 
-Override the model per-session in opencode if you prefer another.
+**⚠️ The `cern-vm` self-hosted model is *very* slow.** It runs on a
+CPU-only VM (no GPU), so a small 7B model generates only a few tokens
+per second. Since the assistant is agentic — several model calls per
+question (think → call tool → read result → answer) — a single question
+can take from tens of seconds to minutes. It needs no key and keeps
+data on the VM, which makes it a legitimate zero-credential fallback,
+but it is not a pleasant primary. For responsive use, prefer `litellm`
+(CERN) or `nrp` (free token). Also note it's reachable only from the
+CERN network (lxplus/SWAN, or VPN).
 
 ## Local execution (optional)
 
