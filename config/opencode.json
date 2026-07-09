@@ -42,6 +42,48 @@
           "limit": { "context": 200000, "output": 8192 }
         }
       }
+    },
+
+    "nrp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NRP Nautilus (research gateway — bring your own NRP token)",
+      "options": {
+        "baseURL": "https://ellm.nrp-nautilus.io/v1",
+        "apiKey": "{env:NRP_API_KEY}"
+      },
+      "models": {
+        "kimi": {
+          "name": "Kimi (Moonshot, open-weight)",
+          "tool_call": true,
+          "attachment": true,
+          "limit": { "context": 262144, "output": 32768 },
+          "modalities": {
+            "input": ["text", "image", "video"],
+            "output": ["text"]
+          }
+        },
+        "qwen3": {
+          "name": "Qwen3 (NRP, reasoning on by default)",
+          "tool_call": true,
+          "reasoning": true,
+          "attachment": true,
+          "limit": { "context": 1010000, "output": 32768 },
+          "modalities": {
+            "input": ["text", "image", "video"],
+            "output": ["text"]
+          }
+        },
+        "qwen3-small": {
+          "name": "Qwen3 Small (NRP, faster)",
+          "tool_call": true,
+          "attachment": true,
+          "limit": { "context": 1010000, "output": 32768 },
+          "modalities": {
+            "input": ["text", "image", "video"],
+            "output": ["text"]
+          }
+        }
+      }
     }
   },
 
