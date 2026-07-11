@@ -1,7 +1,7 @@
 # combine-assistant
 
 An AI assistant for **CMS Combine** (HiggsAnalysis-CombinedLimit). It
-assembles two MCP servers and a skill into one coherent agent that
+assembles MCP servers and skills into one coherent agent that
 answers Combine questions with citations and runs Combine commands to
 reproduce, diagnose, and confirm results.
 
@@ -89,25 +89,41 @@ question (think → call tool → read result → answer) — a single question
 can take from tens of seconds to minutes. It needs no key and keeps
 data on the VM, which makes it a legitimate zero-credential fallback,
 but it is not a pleasant primary. For responsive use, prefer `litellm`
-(CERN) or `nrp` (free token). Also note it's reachable only from the
+(CERN) or `nrp` (if you can get a token). Also note it's reachable only from the
 CERN network (lxplus/SWAN, or VPN).
 
-## Local execution (optional)
+## Local execution
 
 The `combine` retrieval MCP and the `combine-run-remote` execution MCP
-are deployed on CERN PaaS (reachable from the CERN network). If you
-want to run Combine on **your own machine** instead, register the
-execution server locally — it's machine-specific, so it is not baked
-into this shared config:
+are deployed on CERN PaaS (reachable from the CERN network). The remote
+execution server is what lets someone with **no local Combine install**
+run commands at all — it ships Combine itself, in a sandbox.
+
+If you *do* have Combine on your own machine, you don't need a server for
+it: **just source your Combine environment before launching the agent,
+and let the agent run Combine through its built-in shell tool.** Both
+Claude Code and opencode inherit the environment of the shell that
+started them, so once `combine` is on `PATH` the agent can run it
+directly:
 
 ```bash
-claude mcp add combine-run-local --scope user -- \
-  <path-to>/pixi run --manifest-path <combine>/pixi.toml \
-  <path-to>/combine-run-mcp serve
+cd /path/to/CMSSW_14_1_0_pre4/src && cmsenv   # combine, text2workspace.py, … on PATH
+cd /your/analysis                             # your real datacards live here
+claude        # or: source .../combine-assistant/latest/bin/setup.sh && opencode
 ```
 
-The skill prefers a local execution server when one is registered and
-falls back to the remote one.
+This runs Combine in your actual working directory against your real
+files — no upload, no size cap, no separate server process, and none of
+the Python-version juggling the container image needs. The skill
+(`config/skills/combine/SKILL.md`) tells the agent to prefer the shell
+when `combine` is on `PATH` and to fall back to the remote `run_combine`
+tool otherwise.
+
+To keep Combine runs friction-free while still gating arbitrary shell,
+`config/opencode.json` allow-lists the Combine executables in
+`permission.bash` (`combine`, `text2workspace.py`, `combineCards.py`).
+`combineTool.py` is intentionally **not** auto-allowed — it can submit
+batch jobs (condor/crab) — so those calls still prompt.
 
 ## Deploying to CVMFS
 

@@ -1,6 +1,6 @@
 ---
 name: combine
-description: Use when working with CMS Combine (the HiggsAnalysis-CombinedLimit statistical analysis tool used in CMS searches and measurements). Covers datacards, physics models, limits, fits, running modes (AsymptoticLimits, FitDiagnostics, MultiDimFit, HybridNew, Significance, GoodnessOfFit, ChannelCompatibilityCheck), Combine error messages and warnings, statistical methodology, interpreting Combine output, and running Combine commands to reproduce, diagnose, or confirm results. Routes questions to the combine retrieval sources (docs / paper / code / forum) and, when an execution server is available, runs commands via combine-run.
+description: Use when working with CMS Combine (the HiggsAnalysis-CombinedLimit statistical analysis tool used in CMS searches and measurements). Covers datacards, physics models, limits, fits, running modes (AsymptoticLimits, FitDiagnostics, MultiDimFit, HybridNew, Significance, GoodnessOfFit, ChannelCompatibilityCheck), Combine error messages and warnings, statistical methodology, interpreting Combine output, and running Combine commands to reproduce, diagnose, or confirm results. Routes questions to the combine retrieval sources (docs / paper / code / forum) and runs Combine commands — in the shell when Combine is on PATH, otherwise via the remote combine-run server.
 license: MIT
 ---
 
@@ -11,8 +11,9 @@ This skill covers two capabilities for CMS Combine
 
 - **Answering questions** using the `combine` MCP server — read-only
   retrieval over four sources (`search_docs`, `fetch_doc`).
-- **Running Combine** using the `combine-run` MCP server, when one is
-  registered — execute a command and get its output (`run_combine`).
+- **Running Combine** — either directly in the shell (when Combine is on
+  the user's `PATH`) or, failing that, via the remote `combine-run` MCP
+  server's `run_combine` tool.
 
 Most requests are answered by retrieval alone. Reach for execution when
 a user reports a command that misbehaves, asks you to run or try
@@ -152,11 +153,22 @@ Reasoning: this is an error message — start with the forum.
 
 # Part 2 — Running Combine (execution)
 
-Use the `combine-run` MCP server's `run_combine` tool. It runs **one**
-Combine-family command (`combine`, `combineTool.py`,
-`text2workspace.py`, `combineCards.py`) in an isolated, throwaway
-workspace and returns the output. Input files you pass are written into
-that workspace; output files are reported by name.
+Combine can be executed three ways; pick the first that's available:
+
+- **Directly in the shell** when Combine is on the user's `PATH` (they
+  sourced their environment — e.g. `cmsenv` — before launching the
+  agent). Commands run in the user's real working directory against
+  their real files. **Prefer this.**
+- **Via a local `run_combine` server** (`combine-run-local`) if one is
+  registered — same tool contract as remote, but looser limits and
+  longer timeouts.
+- **Via the remote `run_combine` server** (`combine-run-remote`)
+  otherwise — an isolated, throwaway workspace with size-capped inputs.
+
+With either server you pass every input file explicitly. In all three
+cases, run **one** Combine-family command at a time (`combine`,
+`text2workspace.py`, `combineCards.py`, `combineTool.py`) — no shell
+pipes, redirects, or chained commands.
 
 ## When to run vs. when to just explain
 
@@ -168,34 +180,57 @@ that workspace; output files are reported by name.
 - You've proposed a fix and want to confirm it works.
 
 **Do not run — explain from the corpus instead** when:
-- **No execution server is registered.** Never fabricate execution
-  results. Say the execution server isn't available, then reason about
-  the command from the `combine` sources (what the flag does, what the
-  error usually means).
+- **No execution is available** — Combine isn't on `PATH` and neither a
+  local nor a remote `run_combine` server is registered. Never fabricate
+  execution results. Say execution isn't available, then reason about the
+  command from the `combine` sources (what the flag does, what the error
+  usually means).
 - The task is batch submission (e.g. `combineTool.py --job-mode condor`)
-  — that's not what this tool is for; explain, don't submit.
-- The inputs are large (see routing below) and only a remote server is
-  available.
+  — don't submit jobs on the user's behalf; explain instead.
+- The inputs are large (see routing below) and only the size-capped
+  remote `run_combine` server is available.
 
-## Choosing the server: local vs. remote
+## Choosing how to execute
 
-Two servers may be registered. Check which are available and prefer
-accordingly:
+Prefer in this order — use the first that's available:
 
-- **`combine-run-local`** (the user's own machine): no upload limits,
-  longer timeouts. **Prefer this when it's available.** Requires a
-  working Combine environment where the server runs.
-- **`combine-run-remote`** (a shared CERN service): always reachable,
-  but inputs are size-capped and timeouts are shorter. Use it when
-  local isn't registered.
+1. **Shell** — if Combine is on the user's `PATH` (check e.g.
+   `command -v combine`). Runs against their real files, no size caps.
+   The best default.
+2. **`combine-run-local`** — a `run_combine` server the user registered
+   on their own machine or a shared node (e.g. lxplus). Looser limits and
+   longer timeouts than the remote service. Use it when Combine isn't on
+   `PATH` but this server is registered.
+3. **`combine-run-remote`** — the shared CERN PaaS service. Always
+   reachable, but inputs are size-capped and timeouts are shorter. Use it
+   only when neither of the above is available.
 
-Routing rules:
-- Prefer local when available; fall back to remote.
-- If the datacards + shape files are more than a few MB, prefer local
-  even if remote is available — the remote will reject oversized input.
-- If neither is registered, don't run — explain from the corpus.
+If none of the three is available, don't run — explain from the corpus.
 
-## How to call `run_combine`
+Two notes:
+- **Large inputs** (datacards + shape files more than a few MB): the
+  shell handles any size; among the servers, `combine-run-local` is far
+  more likely to accept them than the size-capped remote.
+- Both servers expose the **same `run_combine` tool** (below),
+  distinguished only by their server name.
+
+## Running in the shell
+
+When Combine is on `PATH`:
+
+- Run one command, e.g.
+  `combine -M AsymptoticLimits -d datacard.txt -m 125`. It executes in
+  the user's current working directory, so the datacard and any shape
+  files it references are expected to be on disk there already — don't
+  invent file contents.
+- `combine`, `text2workspace.py`, and `combineCards.py` run without a
+  prompt (they're allow-listed). `combineTool.py` prompts, because it
+  can submit batch jobs — and you should **not** submit batch jobs
+  (condor/crab) on the user's behalf; explain instead.
+- Read the exit code, stdout, and stderr directly. Output files (e.g.
+  `higgsCombine*.root`) land in the working directory.
+
+## Running via a `run_combine` server (local or remote)
 
 - `command`: the full command line, e.g.
   `"combine -M AsymptoticLimits -d datacard.txt -m 125"`. One command;
@@ -212,7 +247,10 @@ references `shapes.root` won't run unless you also pass that file via
 
 ## Interpreting the result
 
-The JSON distinguishes three outcomes:
+In the shell, read the exit code, stdout, and stderr directly — a
+non-zero exit is the debugging case (cross-check `stderr` against the
+`combine` sources). A `run_combine` server (local or remote) instead
+returns JSON that distinguishes three outcomes:
 
 - **`error` is set** (and `returncode` is null): a *setup* failure —
   disallowed executable, oversized input, unsafe filename, or Combine
@@ -231,7 +269,8 @@ Watch `timed_out` (bump `timeout_s` or move heavy jobs local) and the
 
 ## The reproduce → diagnose → fix loop
 
-1. **Reproduce:** `run_combine` with the user's command and files.
+1. **Reproduce:** run the user's command — in the shell if Combine is on
+   `PATH`, otherwise via `run_combine` with the files passed in.
 2. **Read the outcome:** setup error vs. non-zero exit vs. success.
 3. **Diagnose (if it failed):** cross-check `stderr` against the
    `combine` retrieval sources — forum for "has anyone hit this",
@@ -245,14 +284,16 @@ Watch `timed_out` (bump `timeout_s` or move heavy jobs local) and the
 > *User:* "This errors: `combine -M FitDiagnostics -d card.txt
 > --robustHesse 1`, and here's my datacard."
 
-1. `run_combine(command="combine -M FitDiagnostics -d card.txt --robustHesse 1", files={"card.txt": <their card>})`.
-2. Inspect the result: if `error` says Combine wasn't found, tell the
-   user their execution server has no Combine environment. If
-   `returncode` is non-zero, read `stderr`.
+1. Run `combine -M FitDiagnostics -d card.txt --robustHesse 1` — in the
+   shell if Combine is on `PATH` (the card is already on disk), otherwise
+   `run_combine(command=..., files={"card.txt": <their card>})`.
+2. Inspect the result: if Combine wasn't found, execution isn't
+   available — say so, don't guess numbers. If it exited non-zero, read
+   `stderr`.
 3. Take the key line from `stderr` and
    `search_docs(query="<that error text>", source="combine-forum")`;
    if needed, check `combine-code` for what the failing step requires.
-4. Propose the fix (cite the forum thread / docs), then
-   `run_combine(...)` the corrected command to confirm.
+4. Propose the fix (cite the forum thread / docs), then re-run the
+   corrected command to confirm.
 5. Report: what failed, why (with citations), and the confirmed
    working command.
