@@ -89,8 +89,8 @@ rsync -a \
   --exclude '/script/cvmfs-deploy.sh' \
   "${REPO_ROOT}/" "${DEST}/"
 
-# Ensure the entrypoint is executable.
-chmod +x "${DEST}/bin/setup.sh"
+# Ensure the entrypoints are executable.
+chmod +x "${DEST}/bin/"*.sh
 
 # Maintain a "latest" symlink alongside the versioned tree.
 ln -sfn "${VERSION}" "${STAGE_DIR}/latest"

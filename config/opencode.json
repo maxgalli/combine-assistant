@@ -112,6 +112,13 @@
       "url": "https://combine-mcp-git-combine-mcp.app.cern.ch/mcp",
       "enabled": true
     },
+    "combine-run-local": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant/latest/bin/combine-run-local.sh"
+      ]
+    },
     "combine-run-remote": {
       "type": "remote",
       "url": "https://combine-run-mcp-git-combine-mcp.app.cern.ch/mcp",

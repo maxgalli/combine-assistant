@@ -197,10 +197,11 @@ Prefer in this order — use the first that's available:
 1. **Shell** — if Combine is on the user's `PATH` (check e.g.
    `command -v combine`). Runs against their real files, no size caps.
    The best default.
-2. **`combine-run-local`** — a `run_combine` server the user registered
-   on their own machine or a shared node (e.g. lxplus). Looser limits and
-   longer timeouts than the remote service. Use it when Combine isn't on
-   `PATH` but this server is registered.
+2. **`combine-run-local`** — a per-user `run_combine` server. On lxplus
+   it is pre-registered and runs inside the official Combine apptainer
+   container, no user setup needed; elsewhere users may register their
+   own. Looser limits and longer timeouts than the remote service. Use
+   it when Combine isn't on `PATH` and this server is available.
 3. **`combine-run-remote`** — the shared CERN PaaS service. Always
    reachable, but inputs are size-capped and timeouts are shorter. Use it
    only when neither of the above is available.
