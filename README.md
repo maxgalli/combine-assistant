@@ -125,6 +125,44 @@ To keep Combine runs friction-free while still gating arbitrary shell,
 `combineTool.py` is intentionally **not** auto-allowed — it can submit
 batch jobs (condor/crab) — so those calls still prompt.
 
+## Releasing a new version
+
+Two version numbers must stay in lockstep: the **`VERSION` file** (used
+by `cvmfs-deploy.sh` to name the published directory and to point
+`latest` at) and the **git tag** (what the CVMFS deploy driver clones).
+If they disagree, the deploy publishes the new content under the *old*
+directory name — silently overwriting a version users may have pinned.
+
+Checklist, in this order:
+
+1. **Bump `VERSION` first**, then commit:
+
+   ```bash
+   echo "0.3.0" > VERSION
+   git add VERSION && git commit -m "Bump version to 0.3.0"
+   ```
+
+2. **Tag that commit** with the matching name (`v` + `VERSION`) and
+   push branch and tag:
+
+   ```bash
+   git tag -a v0.3.0 -m "combine-assistant v0.3.0"
+   git push origin master
+   git push origin v0.3.0
+   ```
+
+3. **Update the pinned default** in the CVMFS deploy repo
+   (`cms-griddata.cern.ch-cat-sw/deploy_combine-assistant.sh`,
+   `COMBINE_ASSISTANT_TAG:-v0.3.0`) and commit there — the script in
+   git is the record of what is deployed. Its
+   `COMBINE_ASSISTANT_TAG=... ` env override is for one-off tests
+   only.
+
+Sanity check before pushing the tag: run
+`./script/cvmfs-deploy.sh --stage-only` and confirm the directory under
+`dist/cvmfs-stage/` is named after the **new** version — that catches a
+forgotten `VERSION` bump before it reaches CVMFS.
+
 ## Deploying to CVMFS
 
 `config/` is designed to ship read-only on CVMFS. It deploys to the CMS
