@@ -242,9 +242,28 @@ When Combine is on `PATH`:
   files a datacard references.
 - `timeout_s`: optional; the server clamps it to its ceiling.
 
-Pass every file the command needs. A shape-based datacard that
-references `shapes.root` won't run unless you also pass that file via
-`files_b64`.
+The server runs the command in an isolated, throwaway workspace: **only
+the files you pass exist there.** It does not see the user's
+filesystem, even when it runs on the same machine (local server). So a
+path argument to a file you did not pass will fail with "file not
+found".
+
+**When the user gives you a path to a datacard, read it yourself — do
+not ask them to paste its contents.** You have a file-reading tool; use
+it:
+
+1. Read the datacard at the given path.
+2. Scan it for `shapes` lines — each names a ROOT file the datacard
+   references. Read those too (as binary → base64).
+3. Call `run_combine` passing the datacard via `files` and every
+   referenced ROOT file via `files_b64`, and reference them in the
+   `command` by their **base name** (e.g. `-d datacard.txt`, not the
+   original absolute path — the workspace is flat).
+
+Only ask the user for a file if you genuinely cannot read it (it does
+not exist, or is outside a path you can access). Pass every file the
+command needs: a shape-based datacard that references `shapes.root`
+won't run unless you also pass that file via `files_b64`.
 
 ## Interpreting the result
 
