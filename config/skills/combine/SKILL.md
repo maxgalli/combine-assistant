@@ -212,7 +212,35 @@ and do not assume the answer.** Run `command -v combine` in the shell
 
 The mere existence of a `run_combine` tool is **not** a reason to use
 it. It is a *fallback* for when the user has no local Combine. The shell
-is the default whenever Combine is on `PATH`.
+is the default whenever Combine is on `PATH`. When `command -v combine`
+prints a path, the `run_combine` tools are **off the table for this
+session** — treat them as if they did not exist.
+
+> **Concrete example of the mistake to avoid.**
+> User: "run `combine -M AsymptoticLimits -d data/tutorials/counting/realistic-counting-experiment.txt`".
+>
+> WRONG — what not to do:
+> `command -v combine` → `/…/CMSSW_14_1_0_pre4/…/bin/combine` (Combine
+> IS on PATH), yet the model calls
+> `combine-run-local_run_combine(command="combine -M AsymptoticLimits -d data/tutorials/…")`.
+> It fails: the `run_combine` workspace is isolated and empty, so the
+> relative path `data/tutorials/…` isn't there. The model reached for
+> the tool named "run combine" instead of the shell — the exact bug.
+>
+> RIGHT — what to do:
+> `command -v combine` prints a path → run the command with your **shell
+> tool**, in the user's working directory, so the relative path resolves
+> against their real files:
+> `combine -M AsymptoticLimits -d data/tutorials/counting/realistic-counting-experiment.txt`
+> Then read stdout for the expected limit. No `run_combine` call at all.
+
+Note the two ways of "running combine" are genuinely different tools:
+the **shell tool** runs the real executable in the user's directory;
+the **`run_combine` MCP tool** copies files into a throwaway sandbox.
+"Local" is the shell — not `combine-run-local`. Do not treat
+`combine-run-local` as "the local option": it is a *fallback server*
+for machines with no Combine on `PATH`, no more local to the user's
+files than the remote one.
 
 Order of preference:
 
