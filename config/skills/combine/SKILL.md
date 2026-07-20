@@ -153,22 +153,26 @@ Reasoning: this is an error message — start with the forum.
 
 # Part 2 — Running Combine (execution)
 
-Combine can be executed three ways; pick the first that's available:
+Before running anything, decide **how** to execute — and the rule is
+simple: **if `combine` is on the user's `PATH`, run it in the shell;
+otherwise use a `run_combine` server.** Check with `command -v combine`
+first, every time (see "Choosing how to execute"). Getting this wrong is
+the most common failure — do not default to the `run_combine` tool just
+because it appears in your tool list.
 
-- **Directly in the shell** when Combine is on the user's `PATH` (they
-  sourced their environment — e.g. `cmsenv` — before launching the
-  agent). Commands run in the user's real working directory against
-  their real files. **Prefer this.**
-- **Via a local `run_combine` server** (`combine-run-local`) if one is
-  registered — same tool contract as remote, but looser limits and
-  longer timeouts.
-- **Via the remote `run_combine` server** (`combine-run-remote`)
-  otherwise — an isolated, throwaway workspace with size-capped inputs.
+The three execution paths, in order of preference:
 
-With either server you pass every input file explicitly. In all three
-cases, run **one** Combine-family command at a time (`combine`,
-`text2workspace.py`, `combineCards.py`, `combineTool.py`) — no shell
-pipes, redirects, or chained commands.
+- **Shell** (Combine on `PATH`) — the default. The user sourced their
+  environment (e.g. `cmsenv`) before launching the agent, so commands
+  run in their real working directory against their real files, by path.
+- **`combine-run-local`** server — only when Combine is *not* on `PATH`.
+- **`combine-run-remote`** server — last resort.
+
+The two servers run each command in an isolated, throwaway workspace, so
+with them you pass every input file explicitly. In all three cases, run
+**one** Combine-family command at a time (`combine`, `text2workspace.py`,
+`combineCards.py`, `combineTool.py`) — no shell pipes, redirects, or
+chained commands.
 
 ## When to run vs. when to just explain
 
@@ -192,26 +196,43 @@ pipes, redirects, or chained commands.
 
 ## Choosing how to execute
 
-Prefer in this order — use the first that's available:
+**Always do this check FIRST, before every execution — do not skip it
+and do not assume the answer.** Run `command -v combine` in the shell
+(your bash/shell tool). Its result decides everything below:
 
-1. **Shell** — if Combine is on the user's `PATH` (check e.g.
-   `command -v combine`). Runs against their real files, no size caps.
-   The best default.
-2. **`combine-run-local`** — a per-user `run_combine` server. On lxplus
-   it is pre-registered and runs inside the official Combine apptainer
-   container, no user setup needed; elsewhere users may register their
-   own. Looser limits and longer timeouts than the remote service. Use
-   it when Combine isn't on `PATH` and this server is available.
-3. **`combine-run-remote`** — the shared CERN PaaS service. Always
-   reachable, but inputs are size-capped and timeouts are shorter. Use it
-   only when neither of the above is available.
+- **`combine` IS on `PATH`** → you **must** run in the **shell** (tier 1
+  below). Do **not** call a `run_combine` tool in this case, even though
+  one is registered and visible in your tool list. The user has Combine
+  installed and their files on disk; running in the shell uses their
+  real files in place, by path — which is what they expect. Reaching for
+  `run_combine` here is a bug: it runs in an isolated throwaway workspace
+  that cannot see the user's files, so it fails to find them.
+- **`combine` is NOT on `PATH`** → fall back to a `run_combine` server
+  (tier 2, then tier 3).
+
+The mere existence of a `run_combine` tool is **not** a reason to use
+it. It is a *fallback* for when the user has no local Combine. The shell
+is the default whenever Combine is on `PATH`.
+
+Order of preference:
+
+1. **Shell** — Combine on `PATH`. Runs against the user's real files in
+   their working directory, no size caps, outputs persist. The best
+   default. **(See "Running in the shell" below.)**
+2. **`combine-run-local`** — a per-user `run_combine` server, used only
+   when Combine is *not* on `PATH`. On lxplus it is pre-registered and
+   runs inside the official Combine apptainer container. Looser limits
+   than remote, but still an isolated workspace: you must pass input
+   files explicitly (see "Running via a run_combine server").
+3. **`combine-run-remote`** — the shared CERN PaaS service. Isolated,
+   size-capped, shorter timeouts. Use only when neither of the above is
+   available.
 
 If none of the three is available, don't run — explain from the corpus.
 
 Two notes:
-- **Large inputs** (datacards + shape files more than a few MB): the
-  shell handles any size; among the servers, `combine-run-local` is far
-  more likely to accept them than the size-capped remote.
+- **Large inputs** (datacards + shape files more than a few MB): only
+  the shell handles these well; the remote server will reject them.
 - Both servers expose the **same `run_combine` tool** (below),
   distinguished only by their server name.
 

@@ -133,6 +133,8 @@
       "git diff*": "allow",
       "git log*": "allow",
       "ls *": "allow",
+      "command -v *": "allow",
+      "which *": "allow",
       "combine *": "allow",
       "text2workspace.py *": "allow",
       "combineCards.py *": "allow"
