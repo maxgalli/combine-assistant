@@ -92,10 +92,11 @@ but it is not a pleasant primary. For responsive use, prefer `litellm`
 (CERN) or `nrp` (if you can get a token). Also note it's reachable only from the
 CERN network (lxplus/SWAN, or VPN).
 
-## Running Combine — the three execution paths
+## Running Combine — the two execution paths
 
-The skill (`config/skills/combine/SKILL.md`) routes execution through
-the first available of three paths:
+The skill (`config/skills/combine/SKILL.md`) routes execution to the
+first available of two paths. It decides by checking `command -v
+combine`: on `PATH` → shell; otherwise → the remote server.
 
 ### 1. Your shell (preferred when you have Combine)
 
@@ -110,59 +111,32 @@ claude        # or: source .../combine-assistant/latest/bin/setup.sh && opencode
 ```
 
 This runs in your actual working directory against your real files —
-no upload, no size cap, no server process. To keep it friction-free
-while still gating arbitrary shell, `config/opencode.json` allow-lists
-the Combine executables in `permission.bash` (`combine`,
-`text2workspace.py`, `combineCards.py`). `combineTool.py` is
-intentionally **not** auto-allowed — it can submit batch jobs
-(condor/crab) — so those calls still prompt.
+no upload, no size cap, no server process, and outputs persist where
+Combine writes them. To keep it friction-free while still gating
+arbitrary shell, `config/opencode.json` allow-lists the Combine
+executables in `permission.bash` (`combine`, `text2workspace.py`,
+`combineCards.py`). `combineTool.py` is intentionally **not**
+auto-allowed — it can submit batch jobs (condor/crab) — so those calls
+still prompt.
 
-### 2. `combine-run-local` — automatic on lxplus, no setup
+### 2. `combine-run-remote` — the zero-requirement fallback
 
-If Combine is *not* on your `PATH`, the pre-registered
-`combine-run-local` server kicks in. It is
-[`bin/combine-run-local.sh`](bin/combine-run-local.sh): a per-user
-stdio MCP server that runs each command inside the **official CMS
-combine-container apptainer image** (from `/cvmfs/unpacked.cern.ch`),
-with the MCP server itself running from a Python venv published at
-`/cvmfs/cms-griddata.cern.ch/cat/sw/combine-run-mcp/latest/`. No
-per-user setup: it needs only apptainer + the CVMFS mounts, all present
-on lxplus. Each user gets their own server process; runs are isolated
-in throwaway temp dirs; generous limits (no upload cap).
+If Combine is *not* on your `PATH`, the agent uses the execution server
+on CERN PaaS. Always reachable from the CERN network, it ships Combine
+itself and runs each command in an isolated, throwaway sandbox, so the
+agent uploads the datacard (and any shape files) with the request.
+Inputs are size-capped and timeouts are shorter — for large datacards
+or long fits, source a local Combine and use the shell instead.
 
-On machines without those mounts (e.g. a laptop) the spawn fails with a
-message on stderr, the client marks the server unavailable, and the
-skill falls through to the remote server — expected, not a bug.
-
-**Claude Code note.** `combine-run-local` is also registered in
-[`.mcp.json`](.mcp.json) (which only affects git checkouts of this repo
-— the CVMFS deployment doesn't ship that file). Consequences:
-
-- **On lxplus** (or any machine with apptainer + the CVMFS mounts): it
-  just works, same as opencode.
-- **On a machine without CVMFS** (e.g. your laptop): `/mcp` will show
-  `combine-run-local` as *failed*. This is harmless — the tool is
-  simply absent and the skill uses the remote server — but if it
-  bothers you, either **reject** this server when Claude Code asks to
-  approve the project's MCP servers (undo later with
-  `claude mcp reset-project-choices`), or locally delete its entry
-  from `.mcp.json` (don't commit that).
-- **To use your own local server instead** (e.g. Combine installed on
-  your machine): replace the `command` in `.mcp.json` with your own
-  launch command — anything that starts `combine-run-mcp serve` inside
-  a working Combine environment. Keep the change local, or register it
-  under your user scope instead:
-
-  ```bash
-  claude mcp add combine-run-local --scope user -- <your launch command>
-  ```
-
-### 3. `combine-run-remote` — the zero-requirement fallback
-
-The execution server on CERN PaaS. Always reachable from the CERN
-network, ships Combine itself in a sandbox, but inputs are size-capped
-and timeouts are shorter. This is what lets someone with no Combine and
-no CVMFS still run commands.
+> **Note.** A container-backed *local* execution server
+> (`combine-run-local`, running Combine inside the official CMS
+> apptainer image on lxplus) was shipped in v0.3.x but **removed** in
+> v0.4.0: it was redundant with these two paths and caused the model to
+> misroute — calling the sandboxed server when Combine was already on
+> `PATH`, then failing to find the user's files. The wrapper script and
+> its `deploy_combine-run-mcp.sh` deployer were deleted; both are
+> recoverable from git history (tag `v0.3.3`) if the niche — a big local
+> job on lxplus without your own Combine — is ever worth reviving.
 
 ## Releasing a new version
 

@@ -16,12 +16,12 @@ Two MCP servers back this assistant:
   `search_docs`, `fetch_doc`. Use it to answer "how / why / what does
   this do / has anyone hit this" questions with citations.
 
-- **`combine-run`** *(when registered)* — executes a single Combine
-  command in an isolated workspace and returns its output. Tool:
-  `run_combine`. Use it to reproduce a user's command, confirm a fix,
-  or produce a result the user can check. May be registered as
-  `combine-run-local` (the user's own machine) and/or
-  `combine-run-remote` (a shared CERN service).
+- **Execution** — when the user has Combine on their `PATH`, run
+  commands in the **shell** (their real files, in place). Otherwise the
+  **`combine-run-remote`** server (a shared CERN service) executes a
+  single command in an isolated workspace via its `run_combine` tool.
+  Use execution to reproduce a user's command, confirm a fix, or produce
+  a result the user can check.
 
 The `combine` skill contains the detailed routing and execution
 guidance — follow it.

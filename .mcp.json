@@ -4,11 +4,6 @@
       "type": "http",
       "url": "https://combine-mcp-git-combine-mcp.app.cern.ch/mcp"
     },
-    "combine-run-local": {
-      "type": "stdio",
-      "command": "/cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant/latest/bin/combine-run-local.sh",
-      "args": []
-    },
     "combine-run-remote": {
       "type": "http",
       "url": "https://combine-run-mcp-git-combine-mcp.app.cern.ch/mcp"

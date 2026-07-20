@@ -155,24 +155,23 @@ Reasoning: this is an error message — start with the forum.
 
 Before running anything, decide **how** to execute — and the rule is
 simple: **if `combine` is on the user's `PATH`, run it in the shell;
-otherwise use a `run_combine` server.** Check with `command -v combine`
-first, every time (see "Choosing how to execute"). Getting this wrong is
-the most common failure — do not default to the `run_combine` tool just
-because it appears in your tool list.
+otherwise use the `combine-run-remote` server.** Check with
+`command -v combine` first, every time (see "Choosing how to execute").
+Getting this wrong is the most common failure — do not default to the
+`run_combine` tool just because it appears in your tool list.
 
-The three execution paths, in order of preference:
+The two execution paths, in order of preference:
 
 - **Shell** (Combine on `PATH`) — the default. The user sourced their
   environment (e.g. `cmsenv`) before launching the agent, so commands
   run in their real working directory against their real files, by path.
-- **`combine-run-local`** server — only when Combine is *not* on `PATH`.
-- **`combine-run-remote`** server — last resort.
+- **`combine-run-remote`** server — only when Combine is *not* on
+  `PATH`. Runs each command in an isolated, throwaway workspace, so you
+  pass every input file explicitly.
 
-The two servers run each command in an isolated, throwaway workspace, so
-with them you pass every input file explicitly. In all three cases, run
-**one** Combine-family command at a time (`combine`, `text2workspace.py`,
-`combineCards.py`, `combineTool.py`) — no shell pipes, redirects, or
-chained commands.
+In both cases, run **one** Combine-family command at a time (`combine`,
+`text2workspace.py`, `combineCards.py`, `combineTool.py`) — no shell
+pipes, redirects, or chained commands.
 
 ## When to run vs. when to just explain
 
@@ -184,15 +183,15 @@ chained commands.
 - You've proposed a fix and want to confirm it works.
 
 **Do not run — explain from the corpus instead** when:
-- **No execution is available** — Combine isn't on `PATH` and neither a
-  local nor a remote `run_combine` server is registered. Never fabricate
+- **No execution is available** — Combine isn't on `PATH` and the
+  `combine-run-remote` server isn't registered. Never fabricate
   execution results. Say execution isn't available, then reason about the
   command from the `combine` sources (what the flag does, what the error
   usually means).
 - The task is batch submission (e.g. `combineTool.py --job-mode condor`)
   — don't submit jobs on the user's behalf; explain instead.
 - The inputs are large (see routing below) and only the size-capped
-  remote `run_combine` server is available.
+  `combine-run-remote` server is available (no Combine on `PATH`).
 
 ## Choosing how to execute
 
@@ -200,21 +199,20 @@ chained commands.
 and do not assume the answer.** Run `command -v combine` in the shell
 (your bash/shell tool). Its result decides everything below:
 
-- **`combine` IS on `PATH`** → you **must** run in the **shell** (tier 1
-  below). Do **not** call a `run_combine` tool in this case, even though
-  one is registered and visible in your tool list. The user has Combine
+- **`combine` IS on `PATH`** → you **must** run in the **shell**. Do
+  **not** call the `combine-run-remote` tool in this case, even though it
+  is registered and visible in your tool list. The user has Combine
   installed and their files on disk; running in the shell uses their
   real files in place, by path — which is what they expect. Reaching for
   `run_combine` here is a bug: it runs in an isolated throwaway workspace
   that cannot see the user's files, so it fails to find them.
-- **`combine` is NOT on `PATH`** → fall back to a `run_combine` server
-  (tier 2, then tier 3).
+- **`combine` is NOT on `PATH`** → use the `combine-run-remote` server.
 
-The mere existence of a `run_combine` tool is **not** a reason to use
-it. It is a *fallback* for when the user has no local Combine. The shell
-is the default whenever Combine is on `PATH`. When `command -v combine`
-prints a path, the `run_combine` tools are **off the table for this
-session** — treat them as if they did not exist.
+The mere existence of the `combine-run-remote` tool is **not** a reason
+to use it. It is a *fallback* for when the user has no local Combine.
+The shell is the default whenever Combine is on `PATH`. When
+`command -v combine` prints a path, `combine-run-remote` is **off the
+table for this session** — treat it as if it did not exist.
 
 > **Concrete example of the mistake to avoid.**
 > User: "run `combine -M AsymptoticLimits -d data/tutorials/counting/realistic-counting-experiment.txt`".
@@ -222,7 +220,7 @@ session** — treat them as if they did not exist.
 > WRONG — what not to do:
 > `command -v combine` → `/…/CMSSW_14_1_0_pre4/…/bin/combine` (Combine
 > IS on PATH), yet the model calls
-> `combine-run-local_run_combine(command="combine -M AsymptoticLimits -d data/tutorials/…")`.
+> `combine-run-remote_run_combine(command="combine -M AsymptoticLimits -d data/tutorials/…")`.
 > It fails: the `run_combine` workspace is isolated and empty, so the
 > relative path `data/tutorials/…` isn't there. The model reached for
 > the tool named "run combine" instead of the shell — the exact bug.
@@ -234,35 +232,28 @@ session** — treat them as if they did not exist.
 > `combine -M AsymptoticLimits -d data/tutorials/counting/realistic-counting-experiment.txt`
 > Then read stdout for the expected limit. No `run_combine` call at all.
 
-Note the two ways of "running combine" are genuinely different tools:
-the **shell tool** runs the real executable in the user's directory;
-the **`run_combine` MCP tool** copies files into a throwaway sandbox.
-"Local" is the shell — not `combine-run-local`. Do not treat
-`combine-run-local` as "the local option": it is a *fallback server*
-for machines with no Combine on `PATH`, no more local to the user's
-files than the remote one.
+The two ways of "running combine" are genuinely different tools: the
+**shell tool** runs the real executable in the user's directory against
+their files; the **`combine-run-remote` MCP tool** copies files into a
+throwaway sandbox on a remote server. When the user has Combine locally,
+only the shell does what they mean.
 
 Order of preference:
 
 1. **Shell** — Combine on `PATH`. Runs against the user's real files in
    their working directory, no size caps, outputs persist. The best
    default. **(See "Running in the shell" below.)**
-2. **`combine-run-local`** — a per-user `run_combine` server, used only
-   when Combine is *not* on `PATH`. On lxplus it is pre-registered and
-   runs inside the official Combine apptainer container. Looser limits
-   than remote, but still an isolated workspace: you must pass input
-   files explicitly (see "Running via a run_combine server").
-3. **`combine-run-remote`** — the shared CERN PaaS service. Isolated,
-   size-capped, shorter timeouts. Use only when neither of the above is
-   available.
+2. **`combine-run-remote`** — the shared CERN PaaS service, used only
+   when Combine is *not* on `PATH`. Isolated workspace, size-capped
+   inputs, shorter timeouts; you pass input files explicitly (see
+   "Running via the `combine-run-remote` server").
 
-If none of the three is available, don't run — explain from the corpus.
+If neither is available, don't run — explain from the corpus.
 
-Two notes:
-- **Large inputs** (datacards + shape files more than a few MB): only
-  the shell handles these well; the remote server will reject them.
-- Both servers expose the **same `run_combine` tool** (below),
-  distinguished only by their server name.
+Note — **large inputs** (datacards + shape files more than a few MB):
+only the shell handles these; `combine-run-remote` will reject them, so
+if Combine isn't on `PATH` and the inputs are large, explain rather than
+run.
 
 ## Running in the shell
 
@@ -280,7 +271,7 @@ When Combine is on `PATH`:
 - Read the exit code, stdout, and stderr directly. Output files (e.g.
   `higgsCombine*.root`) land in the working directory.
 
-## Running via a `run_combine` server (local or remote)
+## Running via the `combine-run-remote` server
 
 - `command`: the full command line, e.g.
   `"combine -M AsymptoticLimits -d datacard.txt -m 125"`. One command;
@@ -291,11 +282,10 @@ When Combine is on `PATH`:
   files a datacard references.
 - `timeout_s`: optional; the server clamps it to its ceiling.
 
-The server runs the command in an isolated, throwaway workspace: **only
-the files you pass exist there.** It does not see the user's
-filesystem, even when it runs on the same machine (local server). So a
-path argument to a file you did not pass will fail with "file not
-found".
+The server runs the command in an isolated, throwaway workspace on a
+remote machine: **only the files you pass exist there.** It does not see
+the user's filesystem. So a path argument to a file you did not pass
+will fail with "file not found".
 
 **When the user gives you a path to a datacard, read it yourself — do
 not ask them to paste its contents.** You have a file-reading tool; use
@@ -318,8 +308,8 @@ won't run unless you also pass that file via `files_b64`.
 
 In the shell, read the exit code, stdout, and stderr directly — a
 non-zero exit is the debugging case (cross-check `stderr` against the
-`combine` sources). A `run_combine` server (local or remote) instead
-returns JSON that distinguishes three outcomes:
+`combine` sources). The `combine-run-remote` server instead returns
+JSON that distinguishes three outcomes:
 
 - **`error` is set** (and `returncode` is null): a *setup* failure —
   disallowed executable, oversized input, unsafe filename, or Combine
@@ -333,7 +323,8 @@ returns JSON that distinguishes three outcomes:
 - **`returncode` is 0**: success. Report the results from `stdout` and
   note the `artifacts` produced (e.g. `higgsCombine*.root`).
 
-Watch `timed_out` (bump `timeout_s` or move heavy jobs local) and the
+Watch `timed_out` (bump `timeout_s`, or if the job is too heavy for the
+size-capped remote server, note that it needs a local Combine) and the
 `*_truncated` flags (output was tailed).
 
 ## The reproduce → diagnose → fix loop
