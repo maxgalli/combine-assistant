@@ -53,11 +53,12 @@ opencode
 `setup.sh` handles both the binary and the config:
 
 - **Binary.** It uses an `opencode` already on your PATH. If there
-  isn't one, it borrows the opencode binary published on CVMFS
-  (default: lumi's, `/cvmfs/sw.escape.eu/lumi/latest/bin`; override with
-  `COMBINE_ASSISTANT_OPENCODE_BIN`). So on lxplus/SWAN you need no
-  install; elsewhere, install opencode
-  (`curl -fsSL https://opencode.ai/install | bash`) or point the
+  isn't one, it borrows the **combagent** binary published on CVMFS
+  (default: `/cvmfs/cms-griddata.cern.ch/cat/sw/combagent/latest/bin`;
+  override with `COMBINE_ASSISTANT_OPENCODE_BIN`). combagent is our
+  rebranded opencode build (see the combagent branch of the opencode
+  fork). So on lxplus/SWAN you need no install; elsewhere, install
+  opencode (`curl -fsSL https://opencode.ai/install | bash`) or point the
   variable at one.
 - **Config.** It sets `OPENCODE_CONFIG_DIR` to this repo's `config/`,
   which **adds** the Combine MCP servers, the skill, the persona, and a
@@ -210,9 +211,10 @@ tree and repoints `latest`. `.claude/`, `.mcp.json`, and the root
 tree.
 
 Note that the opencode **binary** is not shipped here — `setup.sh`
-borrows lumi's published binary from `/cvmfs/sw.escape.eu/lumi/...`, so
-users need both `cms.cern.ch` and `sw.escape.eu` mounted (both are on
-lxplus/SWAN).
+borrows the combagent binary from
+`/cvmfs/cms-griddata.cern.ch/cat/sw/combagent/...` (our rebranded
+opencode build), so users need `cms.cern.ch` and `cms-griddata.cern.ch`
+mounted (both are on lxplus/SWAN).
 
 ## License
 

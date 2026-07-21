@@ -8,9 +8,10 @@
 #
 # What it does:
 #   1. Ensures `opencode` is on PATH. If it isn't already installed, it
-#      borrows the opencode binary published on CVMFS (default: lumi's,
-#      /cvmfs/sw.escape.eu/lumi/latest/bin). Override the location with
-#      COMBINE_ASSISTANT_OPENCODE_BIN=/path/to/dir.
+#      borrows the combagent binary published on CVMFS (default:
+#      /cvmfs/cms-griddata.cern.ch/cat/sw/combagent/latest/bin).
+#      combagent is our rebranded opencode build. Override the location
+#      with COMBINE_ASSISTANT_OPENCODE_BIN=/path/to/dir.
 #   2. Points OPENCODE_CONFIG_DIR at this tree's config/ (providers,
 #      default model, the Combine MCP servers, permissions, skills,
 #      persona). opencode WRITES into that dir (it installs a plugin
@@ -51,8 +52,8 @@ mkdir -p "$_ca_data" 2>/dev/null || true
 
 # --- ensure `opencode` is available ----------------------------------------
 if ! command -v opencode >/dev/null 2>&1; then
-  # Borrow a published opencode binary (default: lumi's CVMFS bin).
-  _ca_ocbin="${COMBINE_ASSISTANT_OPENCODE_BIN:-/cvmfs/sw.escape.eu/lumi/latest/bin}"
+  # Borrow a published opencode binary (default: combagent's CVMFS bin).
+  _ca_ocbin="${COMBINE_ASSISTANT_OPENCODE_BIN:-/cvmfs/cms-griddata.cern.ch/cat/sw/combagent/latest/bin}"
   if [ -x "${_ca_ocbin}/opencode" ]; then
     case ":${PATH}:" in
       *":${_ca_ocbin}:"*) ;;
