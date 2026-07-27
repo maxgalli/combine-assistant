@@ -34,7 +34,8 @@ source(s), iterate intelligently, and answer with citations.
 | `combine-docs` | Official docs (MkDocs). How-to, CLI flags, tutorials, reference. |
 | `combine-paper` | arXiv:2404.06614v2. Methodology, definitions, the "why". |
 | `combine-code` | Source tree (v10.6.0). The implementation. |
-| `combine-forum` | cms-talk Statistics category. Errors, workarounds, real-world edge cases. |
+| `combine-forum` | cms-talk Statistics category (2022→). Errors, workarounds, real-world edge cases. |
+| `combine-hypernews` | Archived HyperNews forums (pre-2022). Same kind of Q&A, but older — **lower priority** than `combine-forum`; may reference outdated versions. |
 
 ## How to answer
 
@@ -45,7 +46,9 @@ source(s), iterate intelligently, and answer with citations.
 - **"Why does X work this way?"** / **"What is the formal definition of Y?"**
   → start with `combine-paper`.
 - **"I'm getting this error"** / **"I see this warning"** → start with
-  `combine-forum`.
+  `combine-forum`; if it comes up empty, try `combine-hypernews` (the
+  older archived forum — but treat version-sensitive answers with care,
+  it predates 2022).
 - **"What does the implementation actually do?"** / **"Is feature Z really
   there?"** → start with `combine-code`.
 
