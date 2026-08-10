@@ -84,6 +84,27 @@ cat > "$COMBINE_CLAUDE_DIR/.claude/settings.json" <<'JSON'
 }
 JSON
 
+# --- trust this run dir (so its .claude/settings.json is honored) -----------
+# Claude Code ignores a workspace's project settings — permissions.allow AND
+# enableAllProjectMcpServers — until the workspace is trusted (normally an
+# interactive dialog). This run dir is one we generate, so mark it trusted in
+# the user config non-interactively.
+_cc_userconf="${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json"
+python3 - "$_cc_userconf" "$COMBINE_CLAUDE_DIR" <<'PY' 2>/dev/null \
+  || echo "setup-claude WARN: could not set workspace-trust flag in $_cc_userconf" >&2
+import json, os, sys
+conf = sys.argv[1]
+proj = os.path.realpath(sys.argv[2])   # Claude Code keys trust by real path
+try:
+    data = json.load(open(conf)) if os.path.exists(conf) else {}
+except Exception:
+    data = {}
+data.setdefault("projects", {}).setdefault(proj, {})["hasTrustDialogAccepted"] = True
+os.makedirs(os.path.dirname(conf) or ".", exist_ok=True)
+with open(conf, "w") as fh:
+    json.dump(data, fh, indent=2)
+PY
+
 # --- checks -----------------------------------------------------------------
 if ! command -v claude >/dev/null 2>&1; then
   echo "setup-claude WARN: 'claude' (Claude Code CLI) not on PATH — install it" >&2
@@ -96,4 +117,4 @@ echo "combine-assistant (Claude Code) v${COMBINE_ASSISTANT_VERSION} ready" >&2
 echo "  COMBINE_CLAUDE_DIR=$COMBINE_CLAUDE_DIR" >&2
 echo "  launch:  ( cd \"\$COMBINE_CLAUDE_DIR\" && claude -p \"...\" --model <model> )" >&2
 
-unset _cc_src _cc_dir _cc_bin _cc_root _cc_config _cc_mcp _cc_user
+unset _cc_src _cc_dir _cc_bin _cc_root _cc_config _cc_mcp _cc_user _cc_userconf
