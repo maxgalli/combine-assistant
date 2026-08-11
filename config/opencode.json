@@ -196,8 +196,8 @@
     }
   },
 
-  "model": "litellm/gpt-4.1",
-  "small_model": "litellm/mistral-small-latest",
+  "model": "litellm/gpt-5.5",
+  "small_model": "litellm/gpt-4.1-nano",
 
   "mcp": {
     "combine": {
