@@ -14,6 +14,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-07-01",
           "limit": { "context": 1050000, "output": 128000 }
         },
@@ -23,6 +24,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-07-01",
           "limit": { "context": 1050000, "output": 128000 }
         },
@@ -32,6 +34,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-07-01",
           "limit": { "context": 1050000, "output": 128000 }
         },
@@ -41,6 +44,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-05-01",
           "limit": { "context": 1050000, "output": 128000 }
         },
@@ -50,6 +54,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-04-01",
           "limit": { "context": 1050000, "output": 128000 }
         },
@@ -59,6 +64,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-03-01",
           "limit": { "context": 128000, "output": 16384 }
         },
@@ -68,6 +74,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-02-01",
           "limit": { "context": 272000, "output": 128000 }
         },
@@ -77,6 +84,7 @@
           "temperature": true,
           "reasoning": true,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2025-12-01",
           "limit": { "context": 272000, "output": 128000 }
         },
@@ -86,6 +94,7 @@
           "temperature": true,
           "reasoning": false,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2025-06-01",
           "limit": { "context": 1047576, "output": 32768 }
         },
@@ -95,6 +104,7 @@
           "temperature": true,
           "reasoning": false,
           "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2025-06-01",
           "limit": { "context": 1047576, "output": 32768 }
         },
