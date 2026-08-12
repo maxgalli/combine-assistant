@@ -178,14 +178,26 @@ pipes, redirects, or chained commands.
 
 ## When to run vs. when to just explain
 
+**Diagnose from the command first.** For a *reported failing command*,
+check whether the cause is apparent from the command itself — an option
+set outside its allowed range, mutually inconsistent flags, a typo, a
+wrong file or mode. If it is, explain the cause and the fix **directly**
+(cross-checking the `combine` sources for the exact rule); running it is
+then only optional confirmation. Reproduce by running when the cause is
+*not* apparent from inspection, or when you need the real error text.
+
 **Run** when:
-- The user reports a command that errors or gives an unexpected result
-  and you can reproduce it — running it is the fastest path to a real
-  diagnosis.
+- The user reports a command that errors or gives an unexpected result,
+  the cause is **not** apparent from the command itself, and you can
+  reproduce it — running is then the fastest path to a real diagnosis.
 - The user explicitly asks you to run, try, or check something.
 - You've proposed a fix and want to confirm it works.
 
 **Do not run — explain from the corpus instead** when:
+- **The failure is explainable from the command/options alone** — e.g. a
+  parameter set outside its declared range, mutually inconsistent flags,
+  or an obvious typo. Explain the cause and the fix directly; running is
+  optional confirmation, not the first move.
 - **No execution is available** — Combine isn't on `PATH` and the
   `combine-run-remote` server isn't registered. Never fabricate
   execution results. Say execution isn't available, then reason about the
