@@ -125,6 +125,24 @@
       }
     },
 
+    "aigw": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "CERN AI Gateway (CERN users — bring your own key)",
+      "env": ["AIGW_API_KEY"],
+      "options": { "baseURL": "https://aigw.cern.ch/v1" },
+      "models": {
+        "gpt-oss-20b": {
+          "name": "GPT-OSS 20B (CERN AI Gateway)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "release_date": "2025-08-01",
+          "limit": { "context": 131072, "output": 32768 }
+        }
+      }
+    },
+
     "anthropic": {
       "npm": "@ai-sdk/anthropic",
       "name": "Anthropic (public — bring your own key)",
@@ -206,8 +224,8 @@
     }
   },
 
-  "model": "litellm/gpt-5.5",
-  "small_model": "litellm/gpt-4.1-nano",
+  "model": "aigw/gpt-oss-20b",
+  "small_model": "aigw/gpt-oss-20b",
 
   "mcp": {
     "combine": {

@@ -45,10 +45,16 @@ its own model — nothing to configure here.
 ### opencode
 
 ```bash
-source ./bin/setup.sh          # wires opencode at this repo's config/
-export LITELLM_API_KEY=<key>   # your own CERN LiteLLM gateway key
+source ./bin/setup.sh        # wires opencode at this repo's config/
+export AIGW_API_KEY=<key>    # your own CERN AI Gateway key (see below)
 opencode
 ```
+
+Create the key at
+[aigw.cern.ch/ui/?page=api-keys](https://aigw.cern.ch/ui/?page=api-keys):
+pick your team, then **select "All Team Models"** — without that step the
+key sees no models and every request fails. Keys are per-user; there is no
+shared key.
 
 `setup.sh` handles both the binary and the config:
 
@@ -78,10 +84,19 @@ hosted ones) bring your own key. Switch model per-session with
 
 | Provider | Model(s) | Key | Notes |
 |---|---|---|---|
-| `litellm` **(default)** | `litellm/gpt-4.1`, `litellm/mistral-small-latest` | `LITELLM_API_KEY` | CERN LiteLLM gateway. Mint your own key from the CERN LLM gateway self-service; data stays in CERN's governed gateway. |
+| `aigw` **(default)** | `aigw/gpt-oss-20b` | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. **No vision** — see the note below. |
+| `litellm` *(legacy)* | `litellm/gpt-5.5`, `litellm/gpt-4.1`, … | `LITELLM_API_KEY` | The old CERN LiteLLM gateway — **being decommissioned**. Still configured so existing workflows keep running; don't build anything new on it. |
 | `anthropic` | `anthropic/claude-sonnet-5`, `anthropic/claude-opus-4-8` | `ANTHROPIC_API_KEY` | Public Anthropic API, your own key. |
 | `nrp` | `nrp/qwen3`, `nrp/qwen3-small`, `nrp/kimi` | `NRP_API_KEY` | Free-for-researchers GPU gateway (National Research Platform / Nautilus). Get a token at the NRP LLM token page. Good open-model option without a CERN key. |
 | `cern-vm` | `cern-vm/qwen2.5-coder:7b` | none | **Self-hosted** Ollama on `Combine-bot.cern.ch`. No key at all — but see the warning below. |
+
+**⚠️ The default model has no vision.** The CERN AI Gateway currently
+serves only open-weight text models, so `aigw/gpt-oss-20b` cannot read
+images — attach a plot and it will answer *without having seen it*, rather
+than telling you it can't. The config declares the model text-only so
+opencode won't send images in the first place. If you need image
+understanding, use `anthropic/*` with your own key (or the legacy
+`litellm/*` models while that gateway lives).
 
 **⚠️ The `cern-vm` self-hosted model is *very* slow.** It runs on a
 CPU-only VM (no GPU), so a small 7B model generates only a few tokens
@@ -184,7 +199,7 @@ CAT software area, so users just:
 
 ```bash
 source /cvmfs/cms-griddata.cern.ch/cat/sw/combine-assistant/latest/bin/setup.sh
-export LITELLM_API_KEY=<key>
+export AIGW_API_KEY=<key>
 opencode
 ```
 

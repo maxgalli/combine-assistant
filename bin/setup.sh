@@ -21,10 +21,15 @@
 #      (EOS doesn't support SQLite WAL), autoupdate is disabled (versions
 #      come from CVMFS), and a per-user scratch dir is created.
 #
-# Model key: the default provider is the CERN LiteLLM gateway, which needs
-# LITELLM_API_KEY. If you don't set it yourself, this tries to load a shared
-# key from EOS, readable by members of the lumi-api-access e-group. You can
-# also set ANTHROPIC_API_KEY or pick another provider.
+# Model key: the default provider is the CERN AI Gateway (aigw.cern.ch), which
+# needs AIGW_API_KEY — a PER-USER key you create yourself (see the message this
+# prints if it's missing). You can also set ANTHROPIC_API_KEY or pick another
+# provider at launch.
+#
+# The previous CERN LiteLLM gateway (llmgw-litellm.web.cern.ch) is being
+# decommissioned. Its provider is still configured and still loads a shared key
+# from EOS into LITELLM_API_KEY, so `--model litellm/<id>` keeps working until
+# it goes away; nothing new should depend on it.
 #
 # Overridable knobs:
 #   COMBINE_ASSISTANT_OPENCODE_BIN      dir containing the opencode binary
@@ -83,10 +88,14 @@ export OPENCODE_DISABLE_PROJECT_CONFIG=1   # ignore a stray .opencode/ from CWD
 export OPENCODE_DISABLE_AUTOUPDATE=1       # versions are managed via CVMFS
 export OPENCODE_DB="${_ca_data}/opencode.db"  # off EOS (SQLite WAL needs local fs)
 
-# --- LiteLLM key: load the shared CERN gateway key if available ------------
-# The default provider (CERN LiteLLM gateway) needs LITELLM_API_KEY. A shared
-# key lives on EOS and is readable by members of the lumi-api-access e-group.
-# Load it only if the user hasn't already set their own key (don't clobber).
+# --- model keys ------------------------------------------------------------
+# AIGW_API_KEY (the default provider, CERN AI Gateway) is PER-USER: you create
+# it yourself in the web UI, so there is nothing to load here — it either comes
+# from your environment or it doesn't, and the message below explains how.
+#
+# LITELLM_API_KEY is the legacy path: that gateway is being decommissioned but
+# still works, and a shared key lives on EOS readable by the lumi-api-access
+# e-group. Load it only if the user hasn't set their own key (don't clobber).
 _ca_litellm_keyfile="${COMBINE_ASSISTANT_LITELLM_KEY_FILE:-/eos/user/g/gguerrie/lumi_assistant/key.txt}"
 if [ -z "${LITELLM_API_KEY:-}" ] && [ -r "$_ca_litellm_keyfile" ]; then
   LITELLM_API_KEY="$(tr -d '[:space:]' < "$_ca_litellm_keyfile" 2>/dev/null)"
@@ -102,22 +111,30 @@ if ! command -v opencode >/dev/null 2>&1; then
   echo "  NOTE: 'opencode' not found on PATH. Install it, or set" >&2
   echo "        COMBINE_ASSISTANT_OPENCODE_BIN to a dir containing it." >&2
 fi
+if [ -n "${AIGW_API_KEY:-}" ]; then
+  echo "  AIGW_API_KEY is set (CERN AI Gateway)"
+else
+  echo "" >&2
+  echo "  ============================================================" >&2
+  echo "  AIGW_API_KEY is not set." >&2
+  echo "" >&2
+  echo "  The default model uses the CERN AI Gateway, which needs your" >&2
+  echo "  own key (one per user — there is no shared key). To create one:" >&2
+  echo "" >&2
+  echo "    1. Go to https://aigw.cern.ch/ui/?page=api-keys" >&2
+  echo "    2. Create a key, choosing your team" >&2
+  echo "    3. Select 'All Team Models' — without this the key sees" >&2
+  echo "       no models and every request fails" >&2
+  echo "    4. export AIGW_API_KEY=<your key>" >&2
+  echo "" >&2
+  echo "  Docs: https://ml.docs.cern.ch/aigw/gettingstarted/" >&2
+  echo "" >&2
+  echo "  Alternatively set ANTHROPIC_API_KEY, or pick a provider at" >&2
+  echo "  launch with 'opencode --model <provider>/<model>'." >&2
+  echo "  ============================================================" >&2
+fi
 if [ -n "${_ca_litellm_loaded:-}" ]; then
-  echo "  LITELLM_API_KEY loaded from ${_ca_litellm_keyfile}"
-elif [ -z "${LITELLM_API_KEY:-}" ]; then
-  echo "" >&2
-  echo "  ============================================================" >&2
-  echo "  LITELLM_API_KEY is not available." >&2
-  echo "" >&2
-  echo "  The default model uses the CERN LiteLLM gateway, which needs" >&2
-  echo "  a key. To get access, subscribe to the e-group:" >&2
-  echo "    https://gms.web.cern.ch/group/lumi-api-access" >&2
-  echo "  which grants read access to the shared key." >&2
-  echo "" >&2
-  echo "  Alternatively, set your own LITELLM_API_KEY or" >&2
-  echo "  ANTHROPIC_API_KEY, or pick a provider at launch with" >&2
-  echo "  'opencode --model <provider>/<model>'." >&2
-  echo "  ============================================================" >&2
+  echo "  LITELLM_API_KEY loaded from ${_ca_litellm_keyfile} (legacy gateway)"
 fi
 
 unset _ca_src _ca_dir _ca_bin _ca_root _ca_config_src \
