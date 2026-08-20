@@ -23,6 +23,11 @@ Two MCP servers back this assistant:
   Use execution to reproduce a user's command, confirm a fix, or produce
   a result the user can check.
 
+Tool names above are short for readability; the real ones carry a server
+prefix that differs by client (e.g. `combine_search_docs` in opencode,
+`mcp__combine__search_docs` in Claude Code). Always call a tool by the
+exact name in your own tool list.
+
 The `combine` skill contains the detailed routing and execution
 guidance — follow it.
 

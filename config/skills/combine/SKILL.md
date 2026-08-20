@@ -19,6 +19,24 @@ Most requests are answered by retrieval alone. Reach for execution when
 a user reports a command that misbehaves, asks you to run or try
 something, or when reproducing a result would confirm a diagnosis.
 
+## Tool names are prefixed — call them as they appear in your tool list
+
+For readability this skill refers to the tools by their short names —
+`search_docs`, `fetch_doc`, `run_combine`. **Those short names are not
+callable.** MCP tools are exposed with a server prefix that depends on the
+client you are running in, for example:
+
+| This skill says | opencode | Claude Code |
+|---|---|---|
+| `search_docs` | `combine_search_docs` | `mcp__combine__search_docs` |
+| `fetch_doc` | `combine_fetch_doc` | `mcp__combine__fetch_doc` |
+| `run_combine` | `combine-run-remote_run_combine` | `mcp__combine-run-remote__run_combine` |
+
+**Always call a tool by the exact name shown in your own tool list**, and
+copy it character for character — the prefixes mix underscores and
+hyphens. Calling the short name fails with "Model tried to call
+unavailable tool"; if that happens, look up the prefixed name and retry.
+
 ---
 
 # Part 1 — Answering questions (retrieval)
