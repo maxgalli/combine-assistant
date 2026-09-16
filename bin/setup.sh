@@ -26,10 +26,10 @@
 # prints if it's missing). You can also set ANTHROPIC_API_KEY or pick another
 # provider at launch.
 #
-# The previous CERN LiteLLM gateway (llmgw-litellm.web.cern.ch) is being
+# The previous CERN LiteLLM gateway (llmgw-litellm.web.cern.ch) has been
 # decommissioned. Its provider is still configured and still loads a shared key
-# from EOS into LITELLM_API_KEY, so `--model litellm/<id>` keeps working until
-# it goes away; nothing new should depend on it.
+# from EOS into LITELLM_API_KEY, but its models are no longer expected to answer;
+# nothing should depend on it.
 #
 # Overridable knobs:
 #   COMBINE_ASSISTANT_OPENCODE_BIN      dir containing the opencode binary
@@ -136,13 +136,6 @@ fi
 if [ -n "${_ca_litellm_loaded:-}" ]; then
   echo "  LITELLM_API_KEY loaded from ${_ca_litellm_keyfile} (legacy gateway)"
 fi
-echo "" >&2
-echo "  KNOWN ISSUE — the CERN AI Gateway models cannot currently drive" >&2
-echo "  the agent: aigw/hf-qwen3-32b-awq returns no tool calls, and" >&2
-echo "  aigw/gpt-oss-20b aborts multi-turn runs with a parse error." >&2
-echo "  Both are reported. Until they are fixed, pick another provider," >&2
-echo "  e.g. 'opencode --model anthropic/claude-sonnet-5' (ANTHROPIC_API_KEY)" >&2
-echo "  or 'opencode --model nrp/qwen3' (NRP_API_KEY, non-CERN service)." >&2
 
 unset _ca_src _ca_dir _ca_bin _ca_root _ca_config_src \
       _ca_user _ca_data _ca_cfg _ca_ocbin \

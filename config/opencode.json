@@ -156,6 +156,15 @@
           "attachment": false,
           "release_date": "2025-06-01",
           "limit": { "context": 16384, "output": 4096 }
+        },
+        "qwen3.8-27b-fp16": {
+          "name": "Qwen 3.8 27B FP16 (aigw, CERN self-hosted — 64k context)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "release_date": "2026-09-01",
+          "limit": { "context": 64000, "output": 8192 }
         }
       }
     },
@@ -249,8 +258,8 @@
     }
   },
 
-  "model": "aigw/gpt-oss-20b",
-  "small_model": "aigw/gpt-oss-20b",
+  "model": "aigw/qwen3.8-27b-fp16",
+  "small_model": "aigw/qwen3.8-27b-fp16",
 
   "mcp": {
     "combine": {
