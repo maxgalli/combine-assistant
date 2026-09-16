@@ -117,10 +117,54 @@
           "release_date": "2025-08-01",
           "limit": { "context": 131072, "output": 32768 }
         },
+        "qwen/qwen3.6-27b": {
+          "name": "Qwen3.6 27B (Groq-hosted — 8k TPM cap, too low for this assistant)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "limit": { "context": 131072, "output": 16384 }
+        },
         "mistral-small-latest": {
           "name": "Mistral Small (fast/cheap)",
           "tool_call": true,
           "limit": { "context": 128000, "output": 8192 }
+        }
+      }
+    },
+
+    "aigw": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "CERN AI Gateway (CERN users — bring your own key)",
+      "env": ["AIGW_API_KEY"],
+      "options": { "baseURL": "https://aigw.cern.ch/v1" },
+      "models": {
+        "gpt-oss-20b": {
+          "name": "GPT-OSS 20B (aigw — agent runs die on harmony parse errors)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "release_date": "2025-08-01",
+          "limit": { "context": 131072, "output": 32768 }
+        },
+        "hf-qwen3-32b-awq": {
+          "name": "Qwen 3 32B AWQ (aigw, CERN self-hosted — 16k context, too small for this assistant)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "release_date": "2025-06-01",
+          "limit": { "context": 16384, "output": 4096 }
+        },
+        "qwen3.8-27b-fp16": {
+          "name": "Qwen 3.8 27B FP16 (aigw, CERN self-hosted — 64k context)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "release_date": "2026-09-01",
+          "limit": { "context": 64000, "output": 8192 }
         }
       }
     },
@@ -155,6 +199,14 @@
         "apiKey": "{env:NRP_API_KEY}"
       },
       "models": {
+        "gpt-oss": {
+          "name": "GPT-OSS (NRP)",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "limit": { "context": 131072, "output": 32768 }
+        },
         "kimi": {
           "name": "Kimi (Moonshot, open-weight)",
           "tool_call": true,
@@ -206,8 +258,8 @@
     }
   },
 
-  "model": "litellm/gpt-5.5",
-  "small_model": "litellm/gpt-4.1-nano",
+  "model": "aigw/qwen3.8-27b-fp16",
+  "small_model": "aigw/qwen3.8-27b-fp16",
 
   "mcp": {
     "combine": {
