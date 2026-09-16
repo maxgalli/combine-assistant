@@ -84,18 +84,15 @@ hosted ones) bring your own key. Switch model per-session with
 
 | Provider | Model(s) | Key | Notes |
 |---|---|---|---|
-| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. **No vision** — see the note below. |
+| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. The default model reads images (plots, screenshots). |
 | `litellm` *(legacy)* | `litellm/gpt-5.5`, `litellm/gpt-4.1`, … | `LITELLM_API_KEY` | The old CERN LiteLLM gateway — **decommissioned**. Config left in place for now; expect requests to fail. |
 | `anthropic` | `anthropic/claude-sonnet-5`, `anthropic/claude-opus-4-8` | `ANTHROPIC_API_KEY` | Public Anthropic API, your own key. |
 | `nrp` | `nrp/qwen3`, `nrp/qwen3-small`, `nrp/kimi` | `NRP_API_KEY` | Free-for-researchers GPU gateway (National Research Platform / Nautilus). Get a token at the NRP LLM token page. Good open-model option without a CERN key. |
 | `cern-vm` | `cern-vm/qwen2.5-coder:7b` | none | **Self-hosted** Ollama on `Combine-bot.cern.ch`. No key at all — but see the warning below. |
 
-**⚠️ The default model has no vision.** The CERN AI Gateway currently
-serves only open-weight text models, so `aigw/qwen3.8-27b-fp16` cannot read
-images — attach a plot and it will answer *without having seen it*, rather
-than telling you it can't. The config declares the model text-only so
-opencode won't send images in the first place. If you need image
-understanding, use `anthropic/*` with your own key.
+**Vision on aigw:** only the default `aigw/qwen3.8-27b-fp16` reads images.
+The other aigw models (`gpt-oss-20b`, `hf-qwen3-32b-awq`) are text-only and
+declared so in the config, so opencode won't send them images.
 
 **⚠️ The `cern-vm` self-hosted model is *very* slow.** It runs on a
 CPU-only VM (no GPU), so a small 7B model generates only a few tokens

@@ -158,11 +158,12 @@
           "limit": { "context": 16384, "output": 4096 }
         },
         "qwen3.8-27b-fp16": {
-          "name": "Qwen 3.8 27B FP16 (aigw, CERN self-hosted — 64k context)",
+          "name": "Qwen 3.8 27B FP16 (aigw, CERN self-hosted — 64k context, vision)",
           "tool_call": true,
           "temperature": true,
           "reasoning": true,
-          "attachment": false,
+          "attachment": true,
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "release_date": "2026-09-01",
           "limit": { "context": 64000, "output": 8192 }
         }
