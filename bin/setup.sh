@@ -27,14 +27,13 @@
 # provider at launch.
 #
 # The previous CERN LiteLLM gateway (llmgw-litellm.web.cern.ch) has been
-# decommissioned. Its provider is still configured and still loads a shared key
-# from EOS into LITELLM_API_KEY, but its models are no longer expected to answer;
-# nothing should depend on it.
+# decommissioned. Its provider is still in the config so an existing
+# LITELLM_API_KEY in your environment keeps working, but nothing is loaded for
+# you any more and its models are not expected to answer.
 #
 # Overridable knobs:
 #   COMBINE_ASSISTANT_OPENCODE_BIN      dir containing the opencode binary
 #   COMBINE_ASSISTANT_HOME              per-user writable base (default /tmp/...)
-#   COMBINE_ASSISTANT_LITELLM_KEY_FILE  EOS path to the shared LiteLLM key
 
 # --- locate this tree (follow symlinks) ------------------------------------
 _ca_src="${BASH_SOURCE[0]:-$0}"
@@ -93,14 +92,9 @@ export OPENCODE_DB="${_ca_data}/opencode.db"  # off EOS (SQLite WAL needs local 
 # it yourself in the web UI, so there is nothing to load here — it either comes
 # from your environment or it doesn't, and the message below explains how.
 #
-# LITELLM_API_KEY is the legacy path: that gateway is being decommissioned but
-# still works, and a shared key lives on EOS readable by the lumi-api-access
-# e-group. Load it only if the user hasn't set their own key (don't clobber).
-_ca_litellm_keyfile="${COMBINE_ASSISTANT_LITELLM_KEY_FILE:-/eos/user/g/gguerrie/lumi_assistant/key.txt}"
-if [ -z "${LITELLM_API_KEY:-}" ] && [ -r "$_ca_litellm_keyfile" ]; then
-  LITELLM_API_KEY="$(tr -d '[:space:]' < "$_ca_litellm_keyfile" 2>/dev/null)"
-  [ -n "$LITELLM_API_KEY" ] && export LITELLM_API_KEY && _ca_litellm_loaded=1
-fi
+# Nothing is loaded for the decommissioned LiteLLM gateway either: that shared
+# EOS key used to be read into LITELLM_API_KEY here, which only handed people a
+# credential for a gateway that no longer answers.
 
 # --- version ---------------------------------------------------------------
 export COMBINE_ASSISTANT_VERSION="$(cat "$_ca_root/VERSION" 2>/dev/null || echo unknown)"
@@ -138,10 +132,5 @@ else
   echo "  launch with 'opencode --model <provider>/<model>'." >&2
   echo "  ============================================================" >&2
 fi
-if [ -n "${_ca_litellm_loaded:-}" ]; then
-  echo "  LITELLM_API_KEY loaded from ${_ca_litellm_keyfile} (legacy gateway)"
-fi
-
 unset _ca_src _ca_dir _ca_bin _ca_root _ca_config_src \
-      _ca_user _ca_data _ca_cfg _ca_ocbin \
-      _ca_litellm_keyfile _ca_litellm_loaded
+      _ca_user _ca_data _ca_cfg _ca_ocbin
