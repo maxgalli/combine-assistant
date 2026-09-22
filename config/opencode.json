@@ -286,7 +286,10 @@
       "which *": "allow",
       "combine *": "allow",
       "text2workspace.py *": "allow",
-      "combineCards.py *": "allow"
+      "combineCards.py *": "allow",
+      "combineTool.py *": "allow",
+      "echo *": "allow",
+      "base64 *": "allow"
     }
   }
 }

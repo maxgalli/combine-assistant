@@ -77,7 +77,10 @@ cat > "$COMBINE_CLAUDE_DIR/.claude/settings.json" <<'JSON'
       "Bash(which:*)",
       "Bash(combine:*)",
       "Bash(text2workspace.py:*)",
-      "Bash(combineCards.py:*)"
+      "Bash(combineCards.py:*)",
+      "Bash(combineTool.py:*)",
+      "Bash(echo:*)",
+      "Bash(base64:*)"
     ],
     "ask": ["Bash"]
   }
