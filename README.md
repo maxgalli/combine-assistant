@@ -84,15 +84,23 @@ hosted ones) bring your own key. Switch model per-session with
 
 | Provider | Model(s) | Key | Notes |
 |---|---|---|---|
-| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. The default model reads images (plots, screenshots). |
+| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context, CERN-hosted, free); `aigw/gpt-5.6-{sol,terra,luna}-preview` (OpenAI via the gateway, 922k context, metered); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. The default model reads images (plots, screenshots). |
 | `litellm` *(legacy)* | `litellm/gpt-5.5`, `litellm/gpt-4.1`, … | `LITELLM_API_KEY` | The old CERN LiteLLM gateway — **decommissioned**. Config left in place for now; expect requests to fail. |
 | `anthropic` | `anthropic/claude-sonnet-5`, `anthropic/claude-opus-4-8` | `ANTHROPIC_API_KEY` | Public Anthropic API, your own key. |
 | `nrp` | `nrp/qwen3`, `nrp/qwen3-small`, `nrp/kimi` | `NRP_API_KEY` | Free-for-researchers GPU gateway (National Research Platform / Nautilus). Get a token at the NRP LLM token page. Good open-model option without a CERN key. |
 | `cern-vm` | `cern-vm/qwen2.5-coder:7b` | none | **Self-hosted** Ollama on `Combine-bot.cern.ch`. No key at all — but see the warning below. |
 
-**Vision on aigw:** only the default `aigw/qwen3.8-27b-fp16` reads images.
-The other aigw models (`gpt-oss-20b`, `hf-qwen3-32b-awq`) are text-only and
-declared so in the config, so opencode won't send them images.
+**Vision on aigw:** the default `aigw/qwen3.8-27b-fp16` and the three
+`gpt-5.6-*-preview` models read images. `gpt-oss-20b` and `hf-qwen3-32b-awq`
+are text-only and declared so in the config, so opencode won't send them
+images.
+
+**The `gpt-5.6-*-preview` models are metered**, unlike the CERN-hosted ones:
+Sol $5/M input, Terra $2.50/M, Luna $1/M (output 6x input; cached input is far
+cheaper). They are the same capability at three price points — 922k context,
+tool calls, vision, reasoning — so try Luna first. Access is per team on the
+gateway, so your key may not see them. They are reasoning models and reject any
+explicit `temperature`, hence `"temperature": false` in the config.
 
 **⚠️ The `cern-vm` self-hosted model is *very* slow.** It runs on a
 CPU-only VM (no GPU), so a small 7B model generates only a few tokens
