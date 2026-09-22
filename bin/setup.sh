@@ -119,13 +119,18 @@ else
   echo "  AIGW_API_KEY is not set." >&2
   echo "" >&2
   echo "  The default model uses the CERN AI Gateway, which needs your" >&2
-  echo "  own key (one per user — there is no shared key). To create one:" >&2
+  echo "  own key (one per user — there is no shared key). The key must" >&2
+  echo "  belong to the 'cms-combine-agent' team, so in this order:" >&2
   echo "" >&2
-  echo "    1. Go to https://aigw.cern.ch/ui/?page=api-keys" >&2
-  echo "    2. Create a key, choosing your team" >&2
-  echo "    3. Select 'All Team Models' — without this the key sees" >&2
-  echo "       no models and every request fails" >&2
-  echo "    4. export AIGW_API_KEY=<your key>" >&2
+  echo "    1. Subscribe to the e-group 'cms-combine-agent-users':" >&2
+  echo "       https://groups-portal.web.cern.ch/group/cms-combine-agent-users/details" >&2
+  echo "       This is what gives you the team. Without it you are in the" >&2
+  echo "       default 'sandbox' team, which does not serve these models." >&2
+  echo "    2. Create a key at https://aigw.cern.ch/ui/api-keys/ and select" >&2
+  echo "       the 'cms-combine-agent' team (if it is not offered, the" >&2
+  echo "       subscription has not propagated yet — wait and reload)." >&2
+  echo "       Leave the model selection at 'All Team Models'." >&2
+  echo "    3. export AIGW_API_KEY=<your key>   (put it in your shell profile)" >&2
   echo "" >&2
   echo "  Docs: https://ml.docs.cern.ch/aigw/gettingstarted/" >&2
   echo "" >&2

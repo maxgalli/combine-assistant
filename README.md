@@ -50,11 +50,17 @@ export AIGW_API_KEY=<key>    # your own CERN AI Gateway key (see below)
 opencode
 ```
 
-Create the key at
-[aigw.cern.ch/ui/?page=api-keys](https://aigw.cern.ch/ui/?page=api-keys):
-pick your team, then **select "All Team Models"** — without that step the
-key sees no models and every request fails. Keys are per-user; there is no
-shared key.
+Keys are per-user (there is no shared key) and must belong to the
+`cms-combine-agent` team, so do this in order:
+
+1. **Subscribe to the e-group** [`cms-combine-agent-users`](https://groups-portal.web.cern.ch/group/cms-combine-agent-users/details).
+   This is what grants the team; without it the gateway puts you in the
+   default *sandbox* team, which does not serve the models used here.
+2. **Create the key** at [aigw.cern.ch/ui/api-keys](https://aigw.cern.ch/ui/api-keys/),
+   selecting the **`cms-combine-agent`** team. If the team is not offered, the
+   subscription has not propagated yet — wait and reload. Leave the model
+   selection at **All Team Models**.
+3. **Export it** as above, ideally from your shell profile.
 
 `setup.sh` handles both the binary and the config:
 
@@ -84,7 +90,7 @@ hosted ones) bring your own key. Switch model per-session with
 
 | Provider | Model(s) | Key | Notes |
 |---|---|---|---|
-| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context, CERN-hosted, free); `aigw/gpt-5.6-{sol,terra,luna}-preview` (OpenAI via the gateway, 922k context, metered); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key from the [self-service UI](https://aigw.cern.ch/ui/?page=api-keys) (pick a team + "All Team Models"); data stays in CERN's governed gateway. The default model reads images (plots, screenshots). |
+| `aigw` **(default)** | `aigw/qwen3.8-27b-fp16` (64k context, CERN-hosted, free); `aigw/gpt-5.6-{sol,terra,luna}-preview` (OpenAI via the gateway, 922k context, metered); also `aigw/gpt-oss-20b`, `aigw/hf-qwen3-32b-awq` (cannot drive the agent) | `AIGW_API_KEY` | CERN AI Gateway. Per-user key for the `cms-combine-agent` team — join the e-group first (see above); data stays in CERN's governed gateway. The default model reads images (plots, screenshots). |
 | `litellm` *(legacy)* | `litellm/gpt-5.5`, `litellm/gpt-4.1`, … | `LITELLM_API_KEY` | The old CERN LiteLLM gateway — **decommissioned**. Config left in place for now; expect requests to fail. |
 | `anthropic` | `anthropic/claude-sonnet-5`, `anthropic/claude-opus-4-8` | `ANTHROPIC_API_KEY` | Public Anthropic API, your own key. |
 | `nrp` | `nrp/qwen3`, `nrp/qwen3-small`, `nrp/kimi` | `NRP_API_KEY` | Free-for-researchers GPU gateway (National Research Platform / Nautilus). Get a token at the NRP LLM token page. Good open-model option without a CERN key. |
