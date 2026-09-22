@@ -118,13 +118,15 @@ else
   echo "" >&2
   echo "    1. Subscribe to the e-group 'cms-combine-agent-users':" >&2
   echo "       https://groups-portal.web.cern.ch/group/cms-combine-agent-users/details" >&2
-  echo "       This is what gives you the team. Without it you are in the" >&2
-  echo "       default 'sandbox' team, which does not serve these models." >&2
-  echo "    2. Create a key at https://aigw.cern.ch/ui/api-keys/ and select" >&2
-  echo "       the 'cms-combine-agent' team (if it is not offered, the" >&2
-  echo "       subscription has not propagated yet — wait and reload)." >&2
+  echo "    2. Log in once at https://aigw.cern.ch — the gateway registers" >&2
+  echo "       you on that first visit and adds you to the team a few" >&2
+  echo "       minutes later. Until then you are in the default 'sandbox'" >&2
+  echo "       team, which offers fewer models than 'cms-combine-agent'." >&2
+  echo "    3. Create a key at https://aigw.cern.ch/ui/api-keys/ and select" >&2
+  echo "       the 'cms-combine-agent' team (if it is not offered, step 2" >&2
+  echo "       has not gone through yet — wait a few minutes and reload)." >&2
   echo "       Leave the model selection at 'All Team Models'." >&2
-  echo "    3. export AIGW_API_KEY=<your key>   (put it in your shell profile)" >&2
+  echo "    4. export AIGW_API_KEY=<your key>   (put it in your shell profile)" >&2
   echo "" >&2
   echo "  Docs: https://ml.docs.cern.ch/aigw/gettingstarted/" >&2
   echo "" >&2

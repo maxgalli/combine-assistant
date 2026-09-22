@@ -54,13 +54,15 @@ Keys are per-user (there is no shared key) and must belong to the
 `cms-combine-agent` team, so do this in order:
 
 1. **Subscribe to the e-group** [`cms-combine-agent-users`](https://groups-portal.web.cern.ch/group/cms-combine-agent-users/details).
-   This is what grants the team; without it the gateway puts you in the
-   default *sandbox* team, which does not serve the models used here.
-2. **Create the key** at [aigw.cern.ch/ui/api-keys](https://aigw.cern.ch/ui/api-keys/),
-   selecting the **`cms-combine-agent`** team. If the team is not offered, the
-   subscription has not propagated yet — wait and reload. Leave the model
+2. **Log in once** at <https://aigw.cern.ch>. The gateway registers you on that
+   first visit and adds you to the team a few minutes later. Until then you are
+   in the default *sandbox* team, which offers fewer models than
+   `cms-combine-agent`.
+3. **Create the key** at [aigw.cern.ch/ui/api-keys](https://aigw.cern.ch/ui/api-keys/),
+   selecting the **`cms-combine-agent`** team. If the team is not offered, step 2
+   has not gone through yet — wait a few minutes and reload. Leave the model
    selection at **All Team Models**.
-3. **Export it** as above, ideally from your shell profile.
+4. **Export it** as above, ideally from your shell profile.
 
 `setup.sh` handles both the binary and the config:
 
