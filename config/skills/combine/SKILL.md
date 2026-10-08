@@ -51,7 +51,7 @@ source(s), iterate intelligently, and answer with citations.
 |---|---|
 | `combine-docs` | Official docs (MkDocs). How-to, CLI flags, tutorials, reference. |
 | `combine-paper` | arXiv:2404.06614v2. Methodology, definitions, the "why". |
-| `combine-code` | Source tree (v10.6.0). The implementation. |
+| `combine-code` | Source tree (v11.1.0). The implementation. |
 | `combine-forum` | cms-talk Statistics category (2022→). Errors, workarounds, real-world edge cases. |
 | `combine-hypernews` | Archived HyperNews forums (pre-2022). Same kind of Q&A, but older — **lower priority** than `combine-forum`; may reference outdated versions. |
 
