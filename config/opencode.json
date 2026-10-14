@@ -322,7 +322,23 @@
       "combineCards.py *": "allow",
       "combineTool.py *": "allow",
       "echo *": "allow",
-      "base64 *": "allow"
+      "base64 *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "grep *": "allow",
+      "rg *": "allow",
+      "wc *": "allow",
+      "sort *": "allow",
+      "uniq *": "allow",
+      "cut *": "allow",
+      "tr *": "allow",
+      "diff *": "allow",
+      "pwd *": "allow",
+      "file *": "allow",
+      "stat *": "allow",
+      "du *": "allow",
+      "rg *--pre*": "ask"
     }
   }
 }

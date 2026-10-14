@@ -145,7 +145,11 @@ arbitrary shell, `config/opencode.json` allow-lists the Combine
 executables in `permission.bash` (`combine`, `text2workspace.py`,
 `combineCards.py`). `combineTool.py` is intentionally **not**
 auto-allowed — it can submit batch jobs (condor/crab) — so those calls
-still prompt.
+still prompt. Read-only text tools (`cat`, `head`, `tail`, `grep`, `rg`,
+`wc`, `sort`, `uniq`, `cut`, `tr`, `diff`, `pwd`, `file`, `stat`, `du`)
+are allowed too, so the agent can search a large tool output that the
+client saved to disk; commands that can execute or modify files through
+their own flags (`find`, `xargs`, `awk`, `sed`, `rg --pre`) still prompt.
 
 ### 2. `combine-run-remote` — the zero-requirement fallback
 
