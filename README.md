@@ -146,10 +146,15 @@ executables in `permission.bash` (`combine`, `text2workspace.py`,
 `combineCards.py`). `combineTool.py` is intentionally **not**
 auto-allowed — it can submit batch jobs (condor/crab) — so those calls
 still prompt. Read-only text tools (`cat`, `head`, `tail`, `grep`, `rg`,
-`wc`, `sort`, `uniq`, `cut`, `tr`, `diff`, `pwd`, `file`, `stat`, `du`)
-are allowed too, so the agent can search a large tool output that the
-client saved to disk; commands that can execute or modify files through
-their own flags (`find`, `xargs`, `awk`, `sed`, `rg --pre`) still prompt.
+`wc`, `sort`, `uniq`, `cut`, `tr`, `diff`, `pwd`, `file`, `stat`, `du`,
+`find`, `sed -n`) are allowed too, so the agent can search a large tool
+output that the client saved to disk. The flags of these tools that execute
+or modify things are sent back to ask by later rules (opencode applies the
+last matching rule): `rg --pre`; for `find`, `-exec`, `-execdir`, `-ok`,
+`-okdir`, `-delete`, `-fprint`, `-fprint0`, `-fprintf` and `-fls`; and
+`sed -i`. `xargs` and `awk` still prompt. A `sed` script can itself write a
+file (`w`) or run a command (`e`); a glob cannot see inside the script, so
+those are not caught.
 
 ### 2. `combine-run-remote` — the zero-requirement fallback
 
